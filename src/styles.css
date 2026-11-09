@@ -302,12 +302,86 @@ body.show-cursor {
   z-index: 7;
   pointer-events: none;
 }
-#hero3d {
+.dstack {
   position: absolute;
   left: 0;
   top: 0;
-  width: 1920px;
-  height: 1080px;
+  width: 0;
+  height: 0;
+  isolation: isolate;
+  will-change: transform;
+}
+.dlayer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: block;
+  max-width: none;
+  filter: drop-shadow(0 10px 14px rgba(58, 24, 7, 0.28));
+  will-change: transform;
+}
+.dbit {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100px;
+  max-width: none;
+  display: block;
+  filter: drop-shadow(0 6px 8px rgba(58, 24, 7, 0.3));
+  will-change: transform;
+  pointer-events: none;
+}
+.dshadow {
+  position: absolute;
+  left: -330px;
+  top: -30px;
+  width: 660px;
+  height: 60px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(58, 24, 7, 0.42), rgba(58, 24, 7, 0));
+  z-index: 0;
+}
+.dglow {
+  position: absolute;
+  left: -420px;
+  top: -260px;
+  width: 840px;
+  height: 520px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255, 150, 50, 0.7), rgba(255, 120, 30, 0));
+  opacity: 0;
+  z-index: 1;
+}
+.dcut {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 8px;
+  background: #fbf1da;
+  box-shadow: 0 0 0 1px rgba(58, 24, 7, 0.18);
+  border-radius: 4px;
+  z-index: 30;
+  opacity: 0;
+}
+.dpack {
+  position: absolute;
+  left: 0;
+  top: 0;
+  background: linear-gradient(90deg, #b58e55, #d3b077 45%, #b58e55);
+  z-index: 35;
+  opacity: 0;
+  box-shadow: 0 12px 24px rgba(58, 24, 7, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.dpack b {
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: 30px;
+  letter-spacing: 6px;
+  color: #6b3412;
+  writing-mode: vertical-rl;
 }
 .chip {
   position: absolute;
@@ -359,6 +433,9 @@ body.show-cursor {
   width: 816px;
   height: 289px;
   transition: opacity 0.6s ease;
+}
+#brand.mini .bw {
+  opacity: 0 !important;
 }
 #brand .lt {
   opacity: 0;

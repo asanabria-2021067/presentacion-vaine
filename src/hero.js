@@ -1,320 +1,54 @@
 import gsap from 'gsap'
-import * as THREE from 'three'
-import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js'
-import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 
-// Postres en 3D real, armados por capas sobre un plato visto desde arriba.
-// Giran sin parar y las capas se separan (vista explotada) cuando la slide lo pide.
-// Las texturas se pintan por código (canvas), no hay fotos ni modelos externos.
-const BASE = 560
-const TILT = 0.98
+// Postres por capas hechos con imágenes de Canva (vista frontal, una por capa).
+// Las capas flotan y se mecen como en una página de producto: al abrirse se
+// separan en vertical, los ingredientes giran alrededor y cada capa se nombra.
+const GAP = 150 // separación entre capas al abrir (px de diseño)
+const DIR = 'media/capas/'
+
+// capas de abajo hacia arriba. w = ancho de diseño, ov = cuánto se hunde en la de abajo
 const KINDS = {
-  brownie: { chips: [['Cacao', '#75340f'], ['Avena', '#c99a55'], ['Menos azúcar', '#a5314a']] },
-  cheesecake: { chips: [['Lácteos', '#e8d0a4'], ['Frutos rojos', '#a5314a'], ['Base de avena', '#c99a55']] },
-  muffin: { chips: [['Avena', '#c99a55'], ['Frutas', '#a5314a'], ['Yogur', '#e8d0a4']] },
-  pancakes: { chips: [['Avena', '#c99a55'], ['Frutas', '#a5314a'], ['Lácteos', '#e8d0a4']] },
-}
-const ANGLES = [-38, 4, 44]
-
-/* ---------------- texturas pintadas ---------------- */
-function rng(seed) {
-  let a = seed
-  return () => {
-    a |= 0
-    a = (a + 0x6d2b79f5) | 0
-    let t = Math.imul(a ^ (a >>> 15), 1 | a)
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
-  }
-}
-function paint(seed, fn, size = 512) {
-  const c = document.createElement('canvas')
-  c.width = c.height = size
-  const x = c.getContext('2d')
-  fn(x, rng(seed), size)
-  const t = new THREE.CanvasTexture(c)
-  t.colorSpace = THREE.SRGBColorSpace
-  t.anisotropy = 8
-  return t
-}
-const dots = (x, r, S, n, cols, rmin, rmax) => {
-  for (let i = 0; i < n; i++) {
-    x.fillStyle = cols[(r() * cols.length) | 0]
-    x.beginPath()
-    x.arc(r() * S, r() * S, rmin + r() * (rmax - rmin), 0, 7)
-    x.fill()
-  }
-}
-const oats = (x, r, S, n, fill, line) => {
-  for (let i = 0; i < n; i++) {
-    x.save()
-    x.translate(r() * S, r() * S)
-    x.rotate(r() * 6.28)
-    x.fillStyle = fill
-    x.strokeStyle = line
-    x.lineWidth = 1.5
-    x.beginPath()
-    x.ellipse(0, 0, 9 + r() * 8, 5 + r() * 4, 0, 0, 7)
-    x.fill()
-    x.stroke()
-    x.restore()
-  }
-}
-const T = {
-  brownieTop: () =>
-    paint(11, (x, r, S) => {
-      x.fillStyle = '#3a1b0b'
-      x.fillRect(0, 0, S, S)
-      for (let i = 0; i < 70; i++) {
-        const px = r() * S, py = r() * S, rad = 30 + r() * 70
-        const g = x.createRadialGradient(px, py, 0, px, py, rad)
-        g.addColorStop(0, r() > 0.5 ? 'rgba(110,58,28,.55)' : 'rgba(20,8,3,.5)')
-        g.addColorStop(1, 'rgba(0,0,0,0)')
-        x.fillStyle = g
-        x.fillRect(0, 0, S, S)
-      }
-      x.lineCap = 'round'
-      for (let i = 0; i < 26; i++) {
-        x.strokeStyle = r() > 0.4 ? 'rgba(15,6,2,.8)' : 'rgba(150,95,55,.5)'
-        x.lineWidth = 1 + r() * 3
-        x.beginPath()
-        let px = r() * S, py = r() * S
-        x.moveTo(px, py)
-        for (let k = 0; k < 5; k++) {
-          px += (r() - 0.5) * 120
-          py += (r() - 0.5) * 120
-          x.lineTo(px, py)
-        }
-        x.stroke()
-      }
-      oats(x, r, S, 55, '#dcbd86', '#a98147')
-      dots(x, r, S, 90, ['#1b0a03', '#2c1408'], 2, 5)
-    }),
-  crumb: (seed, base, a, b) =>
-    paint(seed, (x, r, S) => {
-      x.fillStyle = base
-      x.fillRect(0, 0, S, S)
-      dots(x, r, S, 2400, [a, b, base], 1, 4.5)
-    }),
-  glaze: () =>
-    paint(23, (x, r, S) => {
-      x.fillStyle = '#251c4a'
-      x.fillRect(0, 0, S, S)
-      for (let i = 0; i < 170; i++) {
-        const px = r() * S, py = r() * S, rad = 15 + r() * 14
-        const g = x.createRadialGradient(px - rad * 0.3, py - rad * 0.35, 1, px, py, rad)
-        g.addColorStop(0, '#6a77c4')
-        g.addColorStop(0.45, '#33377c')
-        g.addColorStop(1, '#171538')
-        x.fillStyle = g
-        x.beginPath()
-        x.arc(px, py, rad, 0, 7)
-        x.fill()
-        x.fillStyle = 'rgba(255,255,255,.55)'
-        x.beginPath()
-        x.arc(px - rad * 0.35, py - rad * 0.4, rad * 0.14, 0, 7)
-        x.fill()
-      }
-    }),
-  muffinTop: () =>
-    paint(31, (x, r, S) => {
-      x.fillStyle = '#d19a52'
-      x.fillRect(0, 0, S, S)
-      for (let i = 0; i < 40; i++) {
-        const px = r() * S, py = r() * S, rad = 30 + r() * 60
-        const g = x.createRadialGradient(px, py, 0, px, py, rad)
-        g.addColorStop(0, r() > 0.5 ? 'rgba(240,200,130,.5)' : 'rgba(150,90,35,.4)')
-        g.addColorStop(1, 'rgba(0,0,0,0)')
-        x.fillStyle = g
-        x.fillRect(0, 0, S, S)
-      }
-      oats(x, r, S, 60, '#ecd09a', '#b78a4c')
-      dots(x, r, S, 14, ['#51438f'], 10, 18)
-    }),
-  pancake: (seed) =>
-    paint(seed, (x, r, S) => {
-      const g = x.createRadialGradient(S / 2, S / 2, 20, S / 2, S / 2, S * 0.7)
-      g.addColorStop(0, '#e8b96e')
-      g.addColorStop(0.7, '#d6a04f')
-      g.addColorStop(1, '#a8702f')
-      x.fillStyle = g
-      x.fillRect(0, 0, S, S)
-      dots(x, r, S, 90, ['rgba(150,90,35,.45)', 'rgba(250,215,150,.5)'], 8, 26)
-      dots(x, r, S, 500, ['rgba(120,70,25,.5)'], 1, 2.6)
-    }),
-  shadow: () =>
-    paint(5, (x, r, S) => {
-      const g = x.createRadialGradient(S / 2, S / 2, S * 0.18, S / 2, S / 2, S / 2)
-      g.addColorStop(0, 'rgba(50,20,5,.55)')
-      g.addColorStop(1, 'rgba(50,20,5,0)')
-      x.fillStyle = g
-      x.fillRect(0, 0, S, S)
-    }),
+  brownie: {
+    layers: [
+      { src: 'brownie-3', w: 500, chip: ['Menos azúcar', '#a5314a'] },
+      { src: 'brownie-2', w: 500, ov: 0.1, chip: ['Avena', '#c99a55'] },
+      { src: 'brownie-1', w: 500, ov: 0.1, chip: ['Cacao', '#75340f'] },
+    ],
+    bits: ['sprite-8', 'sprite-8', 'sprite-3', 'sprite-7', 'sprite-9', 'sprite-8'],
+  },
+  cheesecake: {
+    layers: [
+      { src: 'cheesecake-3', w: 540, chip: ['Base de avena', '#c99a55'] },
+      { src: 'cheesecake-2', w: 520, ov: 0.08, chip: ['Lácteos', '#e8d0a4'] },
+      { src: 'cheesecake-1', w: 540, ov: 0.1, chip: ['Frutos rojos', '#a5314a'] },
+    ],
+    bits: ['sprite-1', 'sprite-6', 'sprite-12', 'sprite-1', 'sprite-6'],
+  },
+  muffin: {
+    layers: [
+      { src: 'muffin-3', w: 390, chip: ['Yogur', '#e8d0a4'] },
+      { src: 'muffin-2', w: 290, ov: 0.52, chip: ['Avena', '#c99a55'] },
+      { src: 'muffin-1', w: 400, ov: 0.12, chip: ['Frutas', '#a5314a'] },
+    ],
+    bits: ['sprite-1', 'sprite-6', 'sprite-13', 'sprite-3', 'sprite-12'],
+  },
+  pancakes: {
+    layers: [
+      { src: 'pancakes-2', w: 500, chip: ['Lácteos', '#e8d0a4'] },
+      { src: 'pancakes-2', w: 480, ov: 0.2, mirror: true, chip: ['Avena', '#c99a55'] },
+      { src: 'pancakes-1', w: 500, ov: 0.22, chip: ['Frutas', '#a5314a'] },
+    ],
+    bits: ['sprite-2', 'sprite-4', 'sprite-10', 'sprite-12', 'sprite-7'],
+  },
 }
 
-/* ---------------- piezas ---------------- */
-const std = (o) => new THREE.MeshStandardMaterial({ roughness: 0.75, metalness: 0, ...o })
-const shadowOn = (o) => {
-  o.traverse((m) => {
-    if (m.isMesh) {
-      m.castShadow = true
-      m.receiveShadow = true
-    }
-  })
-  return o
-}
-function disc(r, h, topTex, sideCol, bump = 0.6, rough = 0.8) {
-  const geo = new THREE.CylinderGeometry(r, r * 1.01, h, 72)
-  const side = std({ color: sideCol, roughness: rough })
-  const top = std({ map: topTex, bumpMap: topTex, bumpScale: bump, roughness: rough })
-  return new THREE.Mesh(geo, [side, top, std({ color: sideCol })])
-}
-function slab(w, h, topTex, sideTex, bump = 1.2) {
-  const geo = new RoundedBoxGeometry(w, h, w, 4, 10)
-  const m = new THREE.Mesh(geo, std({ map: sideTex, bumpMap: sideTex, bumpScale: bump, roughness: 0.85 }))
-  const cap = new THREE.Mesh(
-    new THREE.PlaneGeometry(w - 18, w - 18).rotateX(-Math.PI / 2),
-    std({ map: topTex, bumpMap: topTex, bumpScale: bump, roughness: 0.45 }),
-  )
-  cap.position.y = h / 2 + 0.6
-  const g = new THREE.Group()
-  g.add(m, cap)
-  return g
-}
-function berry(r, col = 0x2d3a7a, rough = 0.35) {
-  const g = new THREE.Group()
-  const s = new THREE.Mesh(new THREE.SphereGeometry(r, 20, 14), std({ color: col, roughness: rough }))
-  s.scale.y = 0.88
-  const c = new THREE.Mesh(new THREE.CircleGeometry(r * 0.28, 6), std({ color: 0x15183a, roughness: 0.9 }))
-  c.rotation.x = -Math.PI / 2
-  c.position.y = r * 0.86
-  g.add(s, c)
-  return g
-}
-function raspberry(r) {
-  const g = new THREE.Group()
-  const m = std({ color: 0xc4223f, roughness: 0.4 })
-  const geo = new THREE.SphereGeometry(r * 0.38, 10, 8)
-  for (let i = 0; i < 14; i++) {
-    const a = i * 2.4, ring = Math.sqrt(i / 14)
-    const p = new THREE.Mesh(geo, m)
-    p.position.set(Math.cos(a) * ring * r * 0.7, Math.sin(ring * 1.5) * r * 0.55, Math.sin(a) * ring * r * 0.7)
-    g.add(p)
-  }
-  return g
-}
-function plate() {
-  const pts = [[0, 0], [170, 0], [215, 5], [262, 32], [284, 50], [279, 55], [262, 42], [222, 18], [170, 11], [0, 11]].map(([x, y]) => new THREE.Vector2(x, y))
-  const m = new THREE.Mesh(
-    new THREE.LatheGeometry(pts, 96),
-    new THREE.MeshPhysicalMaterial({ color: 0xfaf6ee, roughness: 0.22, clearcoat: 0.6, clearcoatRoughness: 0.25, side: THREE.DoubleSide }),
-  )
-  return shadowOn(m)
-}
-
-// cada capa: { obj, y (reposo), dy (cuánto sube al separarse) }
-const BUILD = {
-  brownie() {
-    const side = T.crumb(41, '#4e2711', '#2f1508', '#6e3d1d')
-    const slabs = [
-      slab(310, 46, T.crumb(42, '#4a2410', '#2c1307', '#69391a'), side),
-      slab(310, 46, T.crumb(43, '#5d3016', '#3b1c0c', '#85502a'), side),
-      slab(310, 46, T.brownieTop(), side),
-    ]
-    const cut = new THREE.Group()
-    const cm = std({ color: 0x1c0b04, roughness: 0.9 })
-    for (const rot of [0, Math.PI / 2]) {
-      const b = new THREE.Mesh(new THREE.BoxGeometry(300, 3, 7), cm)
-      b.rotation.y = rot
-      cut.add(b)
-    }
-    cut.position.y = 24
-    slabs[2].add(cut)
-    const pack = new THREE.Mesh(new THREE.BoxGeometry(336, 150, 74), std({ color: 0xa8814a, roughness: 0.95 }))
-    pack.position.y = 12 + 70
-    const out = slabs.map((s, i) => ({ obj: s, y: 12 + 23 + i * 47, dy: 30 + i * 135 }))
-    out.extra = { cut, pack }
-    return out
-  },
-  cheesecake() {
-    const crust = disc(205, 34, T.crumb(51, '#c08f55', '#8f6330', '#dcb27a'), 0xb98550, 1.4)
-    const cream = disc(200, 78, T.crumb(52, '#f3e4bf', '#e6d09b', '#fff3d4'), 0xf0dfb4, 0.15, 0.6)
-    const glaze = disc(200, 26, T.glaze(), 0x2a2050, 1.2, 0.25)
-    const g = new THREE.Group()
-    g.add(glaze)
-    const r = rng(7)
-    for (let i = 0; i < 16; i++) {
-      const a = r() * 6.28, d = Math.sqrt(r()) * 165
-      const b = berry(15 + r() * 6)
-      b.position.set(Math.cos(a) * d, 13 + 12, Math.sin(a) * d)
-      g.add(b)
-    }
-    return [
-      { obj: crust, y: 12 + 17, dy: 20 },
-      { obj: cream, y: 12 + 34 + 39, dy: 150 },
-      { obj: g, y: 12 + 34 + 78 + 13, dy: 290 },
-    ]
-  },
-  muffin() {
-    const cup = new THREE.CylinderGeometry(150, 108, 108, 56, 1, true)
-    const p = cup.attributes.position
-    for (let i = 0; i < p.count; i++) {
-      const x = p.getX(i), z = p.getZ(i), f = 1 + 0.055 * Math.cos(Math.atan2(z, x) * 22)
-      p.setX(i, x * f)
-      p.setZ(i, z * f)
-    }
-    cup.computeVertexNormals()
-    const cupMesh = new THREE.Mesh(cup, std({ color: 0xf2e8d2, roughness: 0.95, side: THREE.DoubleSide }))
-    const body = disc(150, 70, T.crumb(61, '#ebca8e', '#c99a58', '#f6dfae'), 0xe5c083, 0.8)
-    const dome = new THREE.Group()
-    const cap = new THREE.Mesh(
-      new THREE.SphereGeometry(176, 56, 24, 0, Math.PI * 2, 0, Math.PI / 2),
-      std({ map: T.muffinTop(), bumpMap: T.muffinTop(), bumpScale: 1.6, roughness: 0.7 }),
-    )
-    cap.scale.y = 0.5
-    dome.add(cap)
-    const r = rng(9)
-    for (let i = 0; i < 9; i++) {
-      const a = r() * 6.28, d = Math.sqrt(r()) * 100
-      const b = berry(15 + r() * 5)
-      b.position.set(Math.cos(a) * d, Math.sqrt(Math.max(0, 1 - (d / 176) ** 2)) * 88 - 2, Math.sin(a) * d)
-      dome.add(b)
-    }
-    return [
-      { obj: cupMesh, y: 12 + 54, dy: 20 },
-      { obj: body, y: 12 + 108 + 28, dy: 150 },
-      { obj: dome, y: 12 + 108 + 62, dy: 300 },
-    ]
-  },
-  pancakes() {
-    const mk = (seed) => disc(190, 38, T.pancake(seed), 0xe3b66c, 1.2, 0.7)
-    const top = new THREE.Group()
-    top.add(mk(73))
-    const honey = new THREE.Mesh(
-      new THREE.CylinderGeometry(120, 124, 5, 48),
-      new THREE.MeshPhysicalMaterial({ color: 0xd98a1d, roughness: 0.08, clearcoat: 1, transparent: true, opacity: 0.8 }),
-    )
-    honey.position.set(14, 21, -8)
-    top.add(honey)
-    const r = rng(3)
-    for (let i = 0; i < 5; i++) {
-      const rb = raspberry(36)
-      const a = i * 1.26 + 0.4
-      rb.position.set(Math.cos(a) * 80, 38, Math.sin(a) * 80)
-      top.add(rb)
-    }
-    for (let i = 0; i < 8; i++) {
-      const a = r() * 6.28, d = 20 + r() * 110
-      const b = berry(17)
-      b.position.set(Math.cos(a) * d, 36, Math.sin(a) * d)
-      top.add(b)
-    }
-    return [
-      { obj: mk(71), y: 12 + 19, dy: 20 },
-      { obj: mk(72), y: 12 + 19 + 40, dy: 150 },
-      { obj: top, y: 12 + 19 + 80, dy: 285 },
-    ]
-  },
+const mkImg = (name, cls) => {
+  const i = document.createElement('img')
+  i.className = cls
+  i.src = `${DIR}${name}.png`
+  i.alt = ''
+  i.draggable = false
+  return i
 }
 
 class Hero {
@@ -323,105 +57,118 @@ class Hero {
     this.cur = null
     this.cfg = null
     this.chips = []
-    this.t = 0
-
-    this.canvas = document.createElement('canvas')
-    this.canvas.id = 'hero3d'
-    root.appendChild(this.canvas)
-    const dpr = Math.min(2, Math.max(1, (window.devicePixelRatio || 1) * Math.min(window.innerWidth / 1920, window.innerHeight / 1080 + 0.0001) * 1.0))
-    const r = (this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, alpha: true, antialias: true }))
-    r.setPixelRatio(Math.max(1, dpr))
-    r.setSize(1920, 1080, false)
-    r.setClearColor(0x000000, 0)
-    r.toneMapping = THREE.ACESFilmicToneMapping
-    r.toneMappingExposure = 1.05
-    r.shadowMap.enabled = true
-    r.shadowMap.type = THREE.PCFSoftShadowMap
-
-    const scene = (this.scene = new THREE.Scene())
-    const fov = 28
-    this.cam = new THREE.PerspectiveCamera(fov, 1920 / 1080, 10, 8000)
-    this.cam.position.set(0, 0, 540 / Math.tan((fov / 2) * (Math.PI / 180)))
-    const pm = new THREE.PMREMGenerator(r)
-    scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture
-    scene.environmentIntensity = 0.55
-    scene.add(new THREE.HemisphereLight(0xfff0dc, 0x8a5a30, 0.55))
-    const sun = new THREE.DirectionalLight(0xfff4e6, 2.4)
-    sun.position.set(-500, 900, 700)
-    sun.castShadow = true
-    sun.shadow.mapSize.set(2048, 2048)
-    Object.assign(sun.shadow.camera, { left: -700, right: 700, top: 700, bottom: -700, near: 100, far: 3000 })
-    sun.shadow.bias = -0.0006
-    sun.shadow.radius = 5
-    scene.add(sun)
-
     this.objs = {}
-    for (const k of Object.keys(KINDS)) {
-      const outer = new THREE.Group()
-      const spinner = new THREE.Group()
-      outer.add(spinner)
-      spinner.add(plate())
-      const layers = BUILD[k]()
-      for (const l of layers) {
-        shadowOn(l.obj)
-        l.obj.position.y = l.y
-        spinner.add(l.obj)
-      }
-      const sh = new THREE.Mesh(
-        new THREE.PlaneGeometry(760, 760).rotateX(-Math.PI / 2),
-        new THREE.MeshBasicMaterial({ map: T.shadow(), transparent: true, depthWrite: false }),
-      )
-      sh.position.y = -6
-      outer.add(sh)
-      outer.visible = false
-      scene.add(outer)
-      const mats = new Set()
-      layers.forEach((l) => l.obj.traverse((m) => m.isMesh && [].concat(m.material).forEach((x) => x.emissive && mats.add(x))))
-      if (layers.extra) {
-        spinner.add(layers.extra.pack)
-        layers.extra.pack.scale.z = 0.001
-        layers.extra.cut.scale.setScalar(0.001)
-      }
-      this.objs[k] = { outer, spinner, layers, mats: [...mats], extra: layers.extra, s: { e: 0.3, extra: 0, tilt: TILT, scale: 1, heat: 0, cut: 0, pack: 0 } }
-    }
-    gsap.ticker.add((time) => this.render(time))
+    for (const [k, v] of Object.entries(KINDS)) this.objs[k] = this.build(k, v)
+    gsap.ticker.add((t) => this.tick(t))
   }
 
-  render(time) {
-    const any = Object.values(this.objs).some((o) => o.outer.visible)
-    if (!any) {
-      if (this.dirty) {
-        this.renderer.clear()
-        this.dirty = false
-      }
-      return
-    }
-    this.dirty = true
-    this.t = time
+  build(kind, def) {
+    const el = document.createElement('div')
+    el.className = 'dstack'
+    el.style.visibility = 'hidden'
+    const glow = document.createElement('div')
+    glow.className = 'dglow'
+    const shadow = document.createElement('div')
+    shadow.className = 'dshadow'
+    el.append(glow, shadow)
+    const layers = def.layers.map((l, i) => {
+      const img = mkImg(l.src, 'dlayer')
+      img.style.zIndex = 10 + i
+      el.appendChild(img)
+      return { ...l, el: img, h: 0, y: 0, a: 1, drop: 0, flip: 0, wob: 0 }
+    })
+    const bits = def.bits.map((b, i) => {
+      const img = mkImg(b, 'dbit')
+      el.appendChild(img)
+      return { el: img, ph: (i / def.bits.length) * Math.PI * 2, sp: 0.35 + (i % 3) * 0.09, size: 50 + (i % 4) * 9, lift: ((i * 37) % 100) / 100 - 0.5 }
+    })
+    const cuts = [-1, 1].map(() => {
+      const c = document.createElement('div')
+      c.className = 'dcut'
+      el.appendChild(c)
+      return c
+    })
+    const pack = document.createElement('div')
+    pack.className = 'dpack'
+    pack.innerHTML = '<b>VAINÉ</b>'
+    el.appendChild(pack)
+    this.root.appendChild(el)
+    const o = { kind, el, glow, shadow, layers, bits, cuts, pack, s: { e: 0.12, orbit: 0.85, heat: 0, cut: 0, pack: 0, scale: 1, alpha: 1, fade: 1 }, ready: false, maxW: Math.max(...def.layers.map((l) => l.w)) }
+    const loaded = Promise.all([...layers.map((l) => l.el), ...bits.map((b) => b.el)].map((i) => (i.complete ? 1 : new Promise((r) => (i.onload = i.onerror = r)))))
+    loaded.then(() => {
+      this.layout(o)
+      o.ready = true
+    })
+    return o
+  }
+
+  // posiciones de reposo de cada capa (apiladas y centradas)
+  layout(o) {
+    let prevTop = 0
+    o.layers.forEach((l, i) => {
+      l.h = (l.w * l.el.naturalHeight) / l.el.naturalWidth
+      const bottom = i === 0 ? 0 : prevTop + (l.ov || 0) * l.h
+      l.y = bottom - l.h / 2
+      prevTop = bottom - l.h
+      l.el.style.width = `${l.w}px`
+    })
+    const shift = -(0 + prevTop) / 2
+    o.layers.forEach((l) => (l.y += shift))
+    o.stackH = -prevTop
+  }
+
+  tick(t) {
     for (const o of Object.values(this.objs)) {
-      if (!o.outer.visible) continue
-      for (const m of o.mats) {
-        m.emissive.setRGB(1, 0.32, 0.06)
-        m.emissiveIntensity = o.s.heat * 0.2
-      }
-      if (o.extra) {
-        o.extra.cut.scale.setScalar(Math.max(0.001, o.s.cut))
-        o.extra.pack.scale.z = Math.max(0.001, o.s.pack)
-        o.extra.pack.visible = o.s.pack > 0.01
-      }
-      o.outer.rotation.x = o.s.tilt
-      o.outer.scale.setScalar(Math.max(0.001, o.s.scale))
-      o.spinner.rotation.y = time * 0.32 + o.s.extra
+      if (!o.ready || o.el.style.visibility === 'hidden') continue
+      const { s } = o
+      const n = o.layers.length
       o.layers.forEach((l, i) => {
-        const bob = Math.sin(time * 1.3 + i * 1.7) * 7 * o.s.e
-        l.obj.position.y = l.y + l.dy * o.s.e + bob
+        const open = GAP * s.e * (i - (n - 1) / 2)
+        const bob = Math.sin(t * 1.4 + i * 1.3) * 5 * (0.4 + s.e)
+        const y = l.y - open + bob + l.drop
+        gsap.set(l.el, {
+          x: 0,
+          y,
+          xPercent: -50,
+          yPercent: -50,
+          transformPerspective: 1100,
+          rotationY: Math.sin(t * 0.6 + i * 0.9) * 13 + l.flip,
+          rotationZ: Math.sin(t * 0.5 + i) * 1.1,
+          scaleX: l.mirror ? -1 : 1,
+          opacity: l.a * s.fade,
+        })
       })
+      // los ingredientes giran alrededor, delante y detrás de las capas
+      const Rx = o.maxW / 2 + 60
+      o.bits.forEach((b) => {
+        const a = t * b.sp + b.ph
+        const d = Math.sin(a)
+        const amp = s.orbit
+        gsap.set(b.el, {
+          xPercent: -50,
+          yPercent: -50,
+          x: Math.cos(a) * Rx * amp,
+          y: b.lift * (o.stackH + 120 + GAP * s.e * 1.2) + d * 38 * amp,
+          scale: (b.size / 100) * (0.8 + 0.3 * d) * (0.6 + 0.4 * Math.min(1, amp + 0.2)),
+          rotation: t * 24 + b.ph * 57,
+          zIndex: d > 0 ? 40 : 4,
+          opacity: Math.min(1, amp * 1.2) * s.fade * (0.82 + 0.18 * d),
+        })
+      })
+      // brillo del horno
+      gsap.set(o.glow, { opacity: s.heat * (0.7 + 0.15 * Math.sin(t * 3)), scale: 1 + 0.04 * Math.sin(t * 2) })
+      const f = s.heat > 0.01 ? `brightness(${1 + s.heat * 0.1}) sepia(${s.heat * 0.28}) saturate(${1 + s.heat * 0.25})` : 'none'
+      if (o.filter !== f) {
+        o.filter = f
+        o.layers.forEach((l) => (l.el.style.filter = f))
+      }
+      gsap.set(o.shadow, { scaleX: 1 - s.e * 0.12, opacity: 0.55 * s.fade, y: o.stackH / 2 + 14 + GAP * s.e * 1.05 })
+      // cortes y empaque
+      o.cuts.forEach((c, i) => {
+        gsap.set(c, { x: (i ? 1 : -1) * (o.maxW / 6), y: 0, height: o.stackH + 20, scaleY: s.cut, opacity: s.cut > 0.02 ? 1 : 0, xPercent: -50, yPercent: -50 })
+      })
+      gsap.set(o.pack, { x: 0, y: -(1 - s.pack) * 520, yPercent: -50, xPercent: -50, height: o.stackH + 36, width: 150, opacity: s.pack > 0.02 ? Math.min(1, s.pack * 1.6) : 0 })
     }
-    this.renderer.render(this.scene, this.cam)
-  }
-
-  explodeFor(cfg) {
-    return cfg.labels ? 1 : cfg.explode ?? 0.3
   }
 
   show(cfg, { animate = true } = {}) {
@@ -430,17 +177,14 @@ class Hero {
 
     if (prev && prev !== kind) {
       const o = this.objs[prev]
-      this.leaving = true
-      gsap.killTweensOf([o.s, o.outer.position])
-      if (animate) {
-        gsap.to(o.s, { scale: o.s.scale * 0.4, extra: o.s.extra + 2.4, e: 1.4, duration: 0.7, ease: 'power2.in', onComplete: () => {
-          o.outer.visible = false
-          this.leaving = false
-        } })
-      } else {
-        o.outer.visible = false
-        this.leaving = false
+      gsap.killTweensOf([o.s, o.el, ...o.layers])
+      const done = () => {
+        o.el.style.visibility = 'hidden'
       }
+      if (animate) {
+        o.layers.forEach((l, i) => gsap.to(l, { drop: -520, duration: 0.6, delay: (o.layers.length - 1 - i) * 0.07, ease: 'power2.in' }))
+        gsap.to(o.s, { fade: 0, orbit: 0, duration: 0.55, ease: 'power1.in', onComplete: done })
+      } else done()
     }
 
     if (!cfg) {
@@ -451,52 +195,59 @@ class Hero {
     }
 
     const o = this.objs[kind]
+    const e = cfg.labels ? 1 : cfg.explode ?? 0.12
     const sc = cfg.s || 1
-    const e = this.explodeFor(cfg)
-    const px = cfg.x || 0
-    const py = -(cfg.y || 0)
-    gsap.killTweensOf([o.s, o.outer.position])
+    const px = 960 + (cfg.x || 0)
+    const py = 540 + (cfg.y || 0)
+    gsap.killTweensOf([o.s, o.el, ...o.layers])
     if (prev !== kind) {
-      o.outer.visible = true
-      o.outer.position.set(px, py, 0)
+      o.el.style.visibility = 'visible'
+      gsap.set(o.el, { x: px, y: py, scale: sc })
       if (animate) {
-        Object.assign(o.s, { scale: sc * 0.4, extra: -3.2, e: 1.5, tilt: 0.55, heat: 0, cut: 0, pack: 0 })
-        const d = prev ? 0.3 : 0.15
-        gsap.to(o.s, { scale: sc, extra: 0, e, tilt: TILT, duration: 1.6, delay: d, ease: 'power3.out' })
-      } else Object.assign(o.s, { scale: sc, extra: 0, e, tilt: TILT, heat: 0, cut: 0, pack: 0 })
+        Object.assign(o.s, { e: 0.9, orbit: 0, heat: 0, cut: 0, pack: 0, fade: 0 })
+        o.layers.forEach((l, i) => {
+          l.drop = -640 - i * 120
+          l.flip = -140
+          gsap.to(l, { drop: 0, flip: 0, duration: 1.25, delay: (prev ? 0.45 : 0.2) + i * 0.16, ease: 'back.out(1.25)' })
+        })
+        gsap.to(o.s, { fade: 1, duration: 0.5, delay: prev ? 0.45 : 0.2 })
+        gsap.to(o.s, { e, orbit: 0.85, duration: 1.4, delay: (prev ? 0.45 : 0.2) + 0.5, ease: 'power3.inOut' })
+      } else {
+        Object.assign(o.s, { e, orbit: 0.85, heat: 0, cut: 0, pack: 0, fade: 1 })
+        o.layers.forEach((l) => Object.assign(l, { drop: 0, flip: 0 }))
+      }
     } else {
-      o.outer.visible = true
+      o.el.style.visibility = 'visible'
       const dur = animate ? 1.15 : 0
-      gsap.to(o.outer.position, { x: px, y: py, duration: dur, ease: 'power3.inOut' })
-      gsap.to(o.s, { scale: sc, e, tilt: TILT, heat: 0, cut: 0, pack: 0, duration: dur, ease: 'power3.inOut' })
+      gsap.to(o.el, { x: px, y: py, scale: sc, duration: dur, ease: 'power3.inOut' })
+      gsap.to(o.s, { e, orbit: cfg.labels ? 1.1 : 0.85, heat: 0, cut: 0, pack: 0, fade: 1, duration: dur, ease: 'power3.inOut' })
     }
     this.cur = kind
     this.cfg = cfg
     this.setChips(cfg.labels ? cfg : null, animate)
   }
 
-  // vuelta completa del plato (p. ej. un paso del procedimiento)
-  spin(turns, dur = 1.5) {
+  // volteo de todas las capas, una tras otra, como un giro de plato
+  spin(turns = 1, dur = 1.5) {
     if (!this.cur) return
-    gsap.to(this.objs[this.cur].s, { extra: turns * Math.PI * 2, duration: dur, ease: 'power3.inOut', overwrite: 'auto' })
+    const o = this.objs[this.cur]
+    o.layers.forEach((l, i) => gsap.fromTo(l, { flip: 0 }, { flip: 360 * Math.max(1, turns), duration: dur, delay: i * 0.12, ease: 'power3.inOut' }))
   }
 
-  // paso a paso del procedimiento (brownie): 0 reposo, 1 preparar, 2 mezclar, 3 hornear, 4 enfriar y porcionar, 5 empacar
+  // paso a paso del procedimiento: 0 reposo, 1 preparar, 2 mezclar, 3 hornear, 4 enfriar y porcionar, 5 empacar
   phase(k, animate = true) {
     if (!this.cur) return
     const o = this.objs[this.cur]
     const P = [
-      { e: 0.3, tilt: TILT, heat: 0, cut: 0, pack: 0 },
-      { e: 0.62, tilt: TILT, heat: 0, cut: 0, pack: 0 },
-      { e: 0, tilt: TILT, heat: 0, cut: 0, pack: 0 },
-      { e: 0, tilt: TILT, heat: 1, cut: 0, pack: 0 },
-      { e: 0.5, tilt: 1.22, heat: 0, cut: 1, pack: 0 },
-      { e: 0, tilt: 1.12, heat: 0, cut: 1, pack: 1 },
+      { e: 0.12, orbit: 0.85, heat: 0, cut: 0, pack: 0 },
+      { e: 1, orbit: 1.15, heat: 0, cut: 0, pack: 0 },
+      { e: 0, orbit: 0, heat: 0, cut: 0, pack: 0 },
+      { e: 0, orbit: 0, heat: 1, cut: 0, pack: 0 },
+      { e: 0.1, orbit: 0, heat: 0, cut: 1, pack: 0 },
+      { e: 0, orbit: 0, heat: 0, cut: 1, pack: 1 },
     ][Math.max(0, Math.min(5, k))]
-    const dur = animate ? 1.3 : 0
-    gsap.to(o.s, { ...P, duration: dur, ease: 'power3.inOut', overwrite: 'auto' })
-    if (k === 2) gsap.to(o.s, { extra: o.s.extra + Math.PI * 4, duration: animate ? 1.6 : 0, ease: 'power2.inOut' })
-    
+    gsap.to(o.s, { ...P, duration: animate ? 1.3 : 0, ease: 'power3.inOut', overwrite: 'auto' })
+    if (k === 2 && animate) this.spin(1, 1.5)
   }
 
   setChips(cfg, animate) {
@@ -508,23 +259,27 @@ class Hero {
       else c.remove()
     }
     if (!cfg) return
-    const R = (BASE * (cfg.s || 1)) / 2 + 14 * (cfg.s || 1)
+    const o = this.objs[cfg.kind]
+    const sc = cfg.s || 1
     const cx = 960 + (cfg.x || 0)
     const cy = 540 + (cfg.y || 0)
-    KINDS[cfg.kind].chips.forEach(([name, dot], i) => {
-      const a = (ANGLES[i] * Math.PI) / 180
-      const px = cx + Math.cos(a) * R
-      const py = cy + Math.sin(a) * R
+    const n = o.layers.length
+    o.layers.forEach((l, i) => {
+      const [name, dot] = l.chip
       const c = document.createElement('div')
       c.className = 'chip'
       c.style.setProperty('--dot', dot)
       c.textContent = name
       this.root.appendChild(c)
       const h = c.offsetHeight
-      const tx = px - 40
-      const ty = py - h / 2
+      const place = () => {
+        const yy = (l.y - GAP * (i - (n - 1) / 2)) * sc
+        const tx = cx + (l.w / 2) * sc * 0.78 + 36
+        return { tx, ty: cy + yy - h / 2 }
+      }
+      const { tx, ty } = place()
       gsap.set(c, { x: tx - 60, y: ty, opacity: 0, scale: 0.85 })
-      gsap.to(c, { x: tx, opacity: 1, scale: 1, duration: animate ? 0.7 : 0, delay: animate ? 0.9 + i * 0.14 : 0, ease: 'back.out(1.5)' })
+      gsap.to(c, { x: tx, opacity: 1, scale: 1, duration: animate ? 0.7 : 0, delay: animate ? 1.15 + i * 0.14 : 0, ease: 'back.out(1.5)' })
       this.chips.push(c)
     })
   }

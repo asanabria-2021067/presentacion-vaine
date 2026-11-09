@@ -1,4 +1,4 @@
-export const foot = '<img class="foot" src="media/flor.png" alt="" />'
+export const foot = ''
 export const fn = (t) => `<div class="fn" data-in="fade">${t}</div>`
 // Disco de color detrás del postre; cx, cy = desplazamiento desde el centro (igual que la config 3D)
 export const disc = (cx, cy, d, color) =>

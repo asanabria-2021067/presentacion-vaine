@@ -70,12 +70,14 @@ function brandPose(state) {
   const oy = (H - 1080) / 2
   if (state === 'cover') return { x: ox + 120, y: oy + 270, scale: 1.08 }
   if (state === 'center') return { x: (W - 816 * 1.45) / 2, y: oy + 90, scale: 1.45 }
-  return { x: W - 56 - 816 * 0.62, y: 34, scale: 0.62 }
+  // esquina: solo la flor (la palabra se oculta), a la derecha
+  return { x: W - 64 - 596 * 0.95 - 220 * 0.95, y: 26, scale: 0.95 }
 }
 
 function setBrand(state, light, animate) {
   brandState = state
   brandEl.classList.toggle('light', !!light)
+  brandEl.classList.toggle('mini', state === 'corner')
   const pose = brandPose(state)
   gsap.killTweensOf(brandEl)
   if (animate) gsap.to(brandEl, { ...pose, duration: 1.3, ease: 'power3.inOut' })
