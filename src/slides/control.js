@@ -1,4 +1,4 @@
-import { d3 } from '../stage3d.js'
+import { d3 } from '../hero.js'
 import { foot, fn } from './util.js'
 
 const F = 'Control'
@@ -10,10 +10,10 @@ export default [
     section: 7,
     title: 'Tres controles en cada lote',
     bg: '#fbf1da',
-    dessert: { kind: 'brownie', x: POS[0], y: -150, s: 0.85, rx: 0.5 },
+    dessert: { kind: 'brownie', x: POS[0], y: -110, s: 0.66, tilt: -4 },
     steps: 3,
     onStep(k, el, animate) {
-      d3.show({ kind: 'brownie', x: POS[Math.max(0, k - 1)], y: -150, s: 0.85, rx: 0.5 }, { animate })
+      d3.show({ kind: 'brownie', x: POS[Math.max(0, k - 1)], y: -110, s: 0.66 }, { animate })
     },
     notes:
       'Producción y calidad: tres tipos de control en cada lote. Preventivo, antes de iniciar: receta estandarizada, cantidades exactas de endulzantes, harinas y grasas, fechas de vencimiento y calidad de ingredientes. Concurrente, durante la preparación: se cumple la receta, el procedimiento y la higiene. De retroalimentación, después: tamaño de porciones, textura, sabor y presentación. El brownie se desplaza con cada clic.',

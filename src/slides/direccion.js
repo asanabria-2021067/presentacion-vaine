@@ -38,7 +38,7 @@ export default [
           <div class="final" data-in="pop" style="right:0;top:115px"><b>Decisión final</b><span>Queda en manos de quien dirige Vainé</span></div>
         </div>
       </div>
-      <p class="small" data-step="3" style="margin-top:6px;max-width:1500px">Así se mejoran recetas y se resuelven problemas más rápido, y el equipo se siente parte de Vainé.</p>
+      <p class="small" data-step="3" style="margin-top:40px;max-width:1500px">Así se mejoran recetas y se resuelven problemas más rápido, y el equipo se siente parte de Vainé.</p>
       ${foot}`,
   },
   {

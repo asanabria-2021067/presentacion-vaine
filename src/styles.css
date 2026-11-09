@@ -45,7 +45,7 @@ body.show-cursor {
 #viewport {
   position: fixed;
   inset: 0;
-  background: #1f0e05;
+  background: #fbf1da;
 }
 
 #stage {
@@ -57,6 +57,18 @@ body.show-cursor {
   overflow: hidden;
   transform-origin: center center;
 }
+/* La slide (1920×1080) va centrada; el fondo y la marca cubren todo el stage */
+#frame {
+  position: absolute;
+  width: 1920px;
+  height: 1080px;
+  left: 0;
+  top: 0;
+}
+#slides {
+  position: absolute;
+  inset: 0;
+}
 
 #bg {
   position: absolute;
@@ -65,21 +77,6 @@ body.show-cursor {
   z-index: 0;
 }
 
-#dessert-canvas {
-  position: absolute;
-  inset: 0;
-  width: 1920px;
-  height: 1080px;
-  z-index: 7;
-  pointer-events: none;
-}
-#dessert-labels {
-  position: absolute;
-  inset: 0;
-  z-index: 8;
-  pointer-events: none;
-  opacity: 0;
-}
 
 #blackout {
   position: absolute;
@@ -136,6 +133,30 @@ body.show-cursor {
   opacity: 1;
   z-index: 6;
 }
+.slide.z108 {
+  zoom: 1.08;
+  --pad-x: 129.63px;
+}
+.slide.z110 {
+  zoom: 1.1;
+  --pad-x: 127.27px;
+}
+.slide.z112 {
+  zoom: 1.12;
+  --pad-x: 125.00px;
+}
+.slide.z115 {
+  zoom: 1.15;
+  --pad-x: 121.74px;
+}
+.slide.z118 {
+  zoom: 1.18;
+  --pad-x: 118.64px;
+}
+.slide.z120 {
+  zoom: 1.2;
+  --pad-x: 116.67px;
+}
 .slide.dark {
   color: var(--vanilla);
 }
@@ -188,7 +209,7 @@ body.show-cursor {
   line-height: 0.98;
   letter-spacing: -0.01em;
   color: var(--deep);
-  max-width: 1300px;
+  max-width: 1240px;
 }
 .title.md {
   font-size: 92px;
@@ -212,7 +233,7 @@ body.show-cursor {
   color: var(--tan-2);
 }
 .small {
-  font-size: 26px;
+  font-size: 28px;
   line-height: 1.5;
   color: var(--soft);
 }
@@ -273,55 +294,123 @@ body.show-cursor {
   stroke-linejoin: round;
 }
 
-/* ---------- Rótulos de capas 3D ---------- */
+/* ---------- Fotos de los postres (hero persistente) ---------- */
 
-.dlabel {
+#hero {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  pointer-events: none;
+}
+.hp {
+  position: absolute;
+  left: 960px;
+  top: 540px;
+  width: 560px;
+  height: 560px;
+  border-radius: 50%;
+  border: 14px solid var(--vanilla);
+  box-shadow: 0 30px 70px rgba(58, 24, 7, 0.34), 0 0 0 2px rgba(117, 52, 15, 0.18);
+  overflow: hidden;
+  opacity: 0;
+  background: var(--tan-2);
+  will-change: transform, opacity;
+}
+.hp img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.chip {
   position: absolute;
   left: 0;
   top: 0;
-  font-family: var(--f-display);
-  font-weight: 600;
-  font-size: 40px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 28px 14px 18px;
+  border-radius: 999px;
+  background: var(--vanilla);
   color: var(--deep);
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: 40px;
+  line-height: 1;
   white-space: nowrap;
-  will-change: transform;
+  box-shadow: 0 14px 34px rgba(58, 24, 7, 0.25);
+  opacity: 0;
+  will-change: transform, opacity;
 }
-.dlabel i {
-  position: absolute;
-  right: 100%;
-  top: 50%;
-  margin-right: 14px;
-  height: 2px;
-  width: var(--len, 60px);
-  background: var(--cocoa);
-}
-.dlabel i::before {
+.chip::before {
   content: '';
-  position: absolute;
-  left: -4px;
-  top: -4px;
-  width: 10px;
-  height: 10px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
-  background: var(--cocoa);
-  box-shadow: 0 0 0 3px var(--vanilla);
+  background: var(--dot, var(--cocoa));
 }
-.dlabel.left i {
-  right: auto;
-  left: 100%;
-  margin-right: 0;
-  margin-left: 14px;
+
+/* ---------- Marca persistente (arriba a la derecha) ---------- */
+
+#brand {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 816px;
+  height: 289px;
+  z-index: 40;
+  pointer-events: none;
+  transform-origin: 0 0;
 }
-.dlabel.left i::before {
-  left: auto;
-  right: -4px;
+#brand img {
+  position: absolute;
+  display: block;
+}
+#brand .bw {
+  left: 0;
+  top: 0;
+  width: 816px;
+  height: 289px;
+  transition: opacity 0.6s ease;
+}
+#brand .lt {
+  opacity: 0;
+}
+#brand.light .lt {
+  opacity: 1;
+}
+#brand.light .dk {
+  opacity: 0;
+}
+#brand .bf {
+  left: 596px;
+  top: 0;
+  width: 220px;
+  height: 226px;
+  transform-origin: 50% 54%;
+  filter: drop-shadow(0 6px 10px rgba(117, 52, 15, 0.38));
 }
 
 /* ---------- Portada ---------- */
 
 .logo-big {
-  width: 900px;
+  width: 880px;
+  height: 312px; /* espacio reservado: la marca viaja hasta aquí */
   display: block;
+}
+.bye {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 560px;
+  text-align: center;
+  z-index: 2;
+}
+.bye > * {
+  margin-left: auto;
+  margin-right: auto;
+  max-width: none;
+  text-align: center;
 }
 
 /* ---------- Equipo ---------- */
@@ -576,7 +665,7 @@ body.show-cursor {
 .stage-row span {
   display: block;
   margin-top: 4px;
-  font-size: 23px;
+  font-size: 26px;
   line-height: 1.4;
   color: var(--soft);
   font-weight: 500;
@@ -682,7 +771,7 @@ body.show-cursor {
   height: 52px;
 }
 .hb span {
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 500;
   color: var(--soft);
   text-align: right;
@@ -831,7 +920,7 @@ body.show-cursor {
 }
 .gtext small {
   font-family: var(--f-sans);
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 600;
   color: var(--cocoa);
   margin-left: 14px;
@@ -883,7 +972,7 @@ body.show-cursor {
   color: var(--deep);
 }
 .stp p {
-  font-size: 25px;
+  font-size: 28px;
   line-height: 1.45;
   font-weight: 500;
   color: var(--soft);
@@ -894,7 +983,7 @@ body.show-cursor {
 .decide {
   position: relative;
   width: 1700px;
-  height: 520px;
+  height: 560px;
   margin-top: 20px;
 }
 .decide svg {
@@ -925,7 +1014,7 @@ body.show-cursor {
 .bub span {
   display: block;
   margin-top: 8px;
-  font-size: 24px;
+  font-size: 26px;
   line-height: 1.35;
   font-weight: 500;
 }
@@ -1015,7 +1104,7 @@ body.show-cursor {
   background: var(--dot);
 }
 .lvl p {
-  font-size: 27px;
+  font-size: 29px;
   line-height: 1.45;
   font-weight: 500;
   color: var(--soft);
@@ -1052,7 +1141,7 @@ body.show-cursor {
   gap: 10px;
 }
 .mrow span {
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 600;
   padding: 8px 20px;
   border-radius: 999px;
@@ -1098,13 +1187,13 @@ body.show-cursor {
   color: var(--deep);
 }
 .ctrl .when {
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 600;
   color: var(--cocoa);
   margin-top: 8px;
 }
 .ctrl p {
-  font-size: 25px;
+  font-size: 28px;
   line-height: 1.45;
   font-weight: 500;
   color: var(--soft);
@@ -1138,7 +1227,7 @@ body.show-cursor {
   margin-top: 10px;
 }
 .rhythm p {
-  font-size: 25px;
+  font-size: 28px;
   line-height: 1.42;
   font-weight: 500;
   color: var(--soft);

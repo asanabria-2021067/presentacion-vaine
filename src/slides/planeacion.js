@@ -1,4 +1,4 @@
-import { d3 } from '../stage3d.js'
+import { d3 } from '../hero.js'
 import { icon } from '../fx.js'
 import { foot, fn, disc, money } from './util.js'
 
@@ -47,17 +47,17 @@ export default [
     title: 'Misión y visión',
     layout: 'dark',
     bg: '#3a1807',
-    dessert: { kind: 'muffin', x: 610, y: 30, s: 1.5, rx: 0.45 },
+    dessert: { kind: 'muffin', x: 640, y: 80, s: 1.12 },
     notes:
       'Misión (qué, cómo y para quién): elaborar y comercializar postres con mejor perfil nutricional, con recetas estandarizadas, ingredientes de calidad e higiene, para personas y familias que quieren disfrutar algo dulce dentro de una alimentación equilibrada. Visión: en 2031 ser una de las marcas de repostería con enfoque nutricional más reconocidas de Guatemala, con planta propia y presencia en cafeterías.',
     html: `
-      ${disc(610, 30, 760, '#75340f')}
+      ${disc(640, 80, 740, '#75340f')}
       ${fn(F)}
-      <div class="statement" style="position:relative;z-index:2">
+      <div class="statement" style="position:relative;z-index:2;max-width:1060px">
         <h3 data-in="fade">Misión</h3>
         <p data-in="up">Elaborar y vender postres con mejor perfil nutricional, con recetas estandarizadas, ingredientes de calidad e higiene, para personas y familias que quieren disfrutar algo dulce dentro de una alimentación equilibrada.</p>
       </div>
-      <div class="statement" data-step="1" style="position:relative;z-index:2;max-width:1000px">
+      <div class="statement" data-step="1" style="position:relative;z-index:2;max-width:1060px">
         <h3>Visión</h3>
         <p>En 2031, ser una de las marcas de repostería con enfoque nutricional más reconocidas de Guatemala, con planta propia y presencia en cafeterías.</p>
       </div>
@@ -89,6 +89,7 @@ export default [
   },
   {
     id: 'reglas-estrategias',
+    zoom: 1.2,
     section: 2,
     title: 'Reglas, políticas y estrategias',
     bg: '#fbf1da',
@@ -124,15 +125,15 @@ export default [
     section: 2,
     title: 'Procedimiento: brownie de avena y cacao',
     bg: '#fbf1da',
-    dessert: { kind: 'brownie', x: 560, y: 50, s: 1.25, rx: 0.55, ry: 0.2 },
+    dessert: { kind: 'brownie', x: 560, y: 60, s: 1.2 },
     steps: 5,
     onStep(k) {
-      d3.to({ ry: 0.2 + (k * Math.PI) / 2.5 }, 1.4)
+      d3.spin(k)
     },
     notes:
       'Procedimiento de 10 pasos agrupados en 5 etapas: preparar (ficha técnica, higiene, pesar), mezclar, hornear, enfriar y porcionar, empacar y registrar. El brownie gira con cada etapa.',
     html: `
-      ${disc(560, 50, 720, '#e8d0a4')}
+      ${disc(560, 60, 720, '#e8d0a4')}
       ${fn(F)}
       <h2 class="title sm" data-in="words" style="position:relative;z-index:2;font-size:64px">Así se hace el brownie de avena y cacao</h2>
       <div class="proc" style="position:relative;z-index:2">
@@ -219,6 +220,7 @@ export default [
   },
   {
     id: 'costos-fijos',
+    zoom: 1.08,
     section: 3,
     title: 'Costos fijos mensuales',
     bg: '#fbf1da',

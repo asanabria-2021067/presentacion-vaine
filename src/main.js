@@ -13,7 +13,7 @@ import './styles.css'
 
 import { SLIDES } from './slides/index.js'
 import { animIn, words, countUp, setCount, draw, drawDone } from './fx.js'
-import { initD3 } from './stage3d.js'
+import { initD3 } from './hero.js'
 
 const params = new URLSearchParams(location.search)
 const PREVIEW = params.has('preview')
@@ -32,7 +32,7 @@ const d3 = initD3(stage)
 
 const els = SLIDES.map((s, i) => {
   const sec = document.createElement('section')
-  sec.className = `slide ${s.layout || ''}`.trim()
+  sec.className = `slide ${s.layout || ''} ${s.zoom ? 'z' + Math.round(s.zoom * 100) : ''}`.trim()
   sec.dataset.id = s.id
   sec.dataset.index = i
   sec.innerHTML = s.html
@@ -56,9 +56,42 @@ for (const v of stage.querySelectorAll('video')) {
   }
 }
 
+// El lienzo de diseño (1920×1080) va centrado, pero el fondo y la marca cubren
+// toda la pantalla: así nunca quedan barras vacías en ventanas de otra proporción.
+const frameEl = document.getElementById('frame')
+const brandEl = document.getElementById('brand')
+const flor = brandEl.querySelector('.bf')
+let W = 1920
+let H = 1080
+let brandState = 'corner'
+
+function brandPose(state) {
+  const ox = (W - 1920) / 2
+  const oy = (H - 1080) / 2
+  if (state === 'cover') return { x: ox + 120, y: oy + 270, scale: 1.08 }
+  if (state === 'center') return { x: (W - 816 * 1.45) / 2, y: oy + 90, scale: 1.45 }
+  return { x: W - 56 - 816 * 0.62, y: 34, scale: 0.62 }
+}
+
+function setBrand(state, light, animate) {
+  brandState = state
+  brandEl.classList.toggle('light', !!light)
+  const pose = brandPose(state)
+  gsap.killTweensOf(brandEl)
+  if (animate) gsap.to(brandEl, { ...pose, duration: 1.3, ease: 'power3.inOut' })
+  else gsap.set(brandEl, pose)
+}
+
 function fit() {
   const s = Math.min(innerWidth / 1920, innerHeight / 1080)
+  W = innerWidth / s
+  H = innerHeight / s
+  stage.style.width = `${W}px`
+  stage.style.height = `${H}px`
   stage.style.transform = `translate(-50%, -50%) scale(${s})`
+  frameEl.style.left = `${(W - 1920) / 2}px`
+  frameEl.style.top = `${(H - 1080) / 2}px`
+  gsap.set(brandEl, { transformOrigin: '0 0', ...brandPose(brandState) })
 }
 addEventListener('resize', fit)
 fit()
@@ -221,9 +254,12 @@ function go(i, s = 0, { animate = true, broadcast = true } = {}) {
   hideSteps(slide, el, 1)
 
   const bg = slide.bg || '#fbf1da'
-  if (animate) gsap.to(bgEl, { backgroundColor: bg, duration: 0.7, delay: 0.2 })
-  else gsap.set(bgEl, { backgroundColor: bg })
+  const vp = document.getElementById('viewport')
+  if (animate) gsap.to([bgEl, vp], { backgroundColor: bg, duration: 0.7, delay: 0.2 })
+  else gsap.set([bgEl, vp], { backgroundColor: bg })
   d3.show(slide.dessert, { animate: animate })
+  setBrand(slide.brand || 'corner', slide.layout === 'dark', animate)
+  if (animate) gsap.to(flor, { rotation: '+=300', duration: 1.7, ease: 'power3.inOut', overwrite: 'auto' })
 
   const fullAnim = animate && forward
   if (animate) gsap.fromTo(el, { opacity: 0 }, { opacity: 1, duration: 0.5, delay: prev ? 0.25 : 0 })

@@ -1,4 +1,4 @@
-import { foot, fn, disc } from './util.js'
+import { foot, fn } from './util.js'
 
 const rec = (a, b) => `<div class="rc"><b>${a}</b><span>${b}</span></div>`
 
@@ -46,15 +46,14 @@ export default [
     section: 9,
     title: 'Cierre y preguntas',
     bg: '#d7b782',
-    dessert: { kind: 'pancakes', x: 520, y: 30, s: 1.3, rx: 0.6 },
+    brand: 'center',
+    dessert: null,
     notes: 'Gracias. Preguntas. Trabajo de elaboración propia: no se consultaron fuentes bibliográficas externas.',
     html: `
-      ${disc(520, 30, 740, '#fbf1da')}
-      <div style="position:relative;z-index:2">
+      <div class="bye">
         <div class="thanks" data-in="words">Gracias</div>
-        <p class="lead" data-in="up" style="margin-top:30px;color:#3a1807;font-weight:600;font-size:46px">¿Preguntas?</p>
-        <img src="media/vaine-logo.png" alt="Vainé, dulce que nutre" data-in="blur" style="width:640px;display:block;margin:70px 0 0 0" />
-        <p class="small" data-in="fade" style="margin-top:10px;color:#5a3a22">Trabajo de elaboración propia, sin fuentes bibliográficas externas.</p>
+        <p class="lead" data-in="up" style="margin-top:22px;color:#3a1807;font-weight:600;font-size:46px">¿Preguntas?</p>
+        <p class="small" data-in="fade" style="margin-top:40px;color:#5a3a22;font-size:24px">Trabajo de elaboración propia, sin fuentes bibliográficas externas. Fotos: Unsplash, licencia libre.</p>
       </div>`,
   },
 ]
