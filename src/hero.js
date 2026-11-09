@@ -221,7 +221,20 @@ const BUILD = {
       slab(310, 46, T.crumb(43, '#5d3016', '#3b1c0c', '#85502a'), side),
       slab(310, 46, T.brownieTop(), side),
     ]
-    return slabs.map((s, i) => ({ obj: s, y: 12 + 23 + i * 47, dy: 30 + i * 135 }))
+    const cut = new THREE.Group()
+    const cm = std({ color: 0x1c0b04, roughness: 0.9 })
+    for (const rot of [0, Math.PI / 2]) {
+      const b = new THREE.Mesh(new THREE.BoxGeometry(300, 3, 7), cm)
+      b.rotation.y = rot
+      cut.add(b)
+    }
+    cut.position.y = 24
+    slabs[2].add(cut)
+    const pack = new THREE.Mesh(new THREE.BoxGeometry(336, 150, 74), std({ color: 0xa8814a, roughness: 0.95 }))
+    pack.position.y = 12 + 70
+    const out = slabs.map((s, i) => ({ obj: s, y: 12 + 23 + i * 47, dy: 30 + i * 135 }))
+    out.extra = { cut, pack }
+    return out
   },
   cheesecake() {
     const crust = disc(205, 34, T.crumb(51, '#c08f55', '#8f6330', '#dcb27a'), 0xb98550, 1.4)
@@ -362,16 +375,40 @@ class Hero {
       outer.add(sh)
       outer.visible = false
       scene.add(outer)
-      this.objs[k] = { outer, spinner, layers, s: { e: 0.3, extra: 0, tilt: TILT, scale: 1 } }
+      const mats = new Set()
+      layers.forEach((l) => l.obj.traverse((m) => m.isMesh && [].concat(m.material).forEach((x) => x.emissive && mats.add(x))))
+      if (layers.extra) {
+        spinner.add(layers.extra.pack)
+        layers.extra.pack.scale.z = 0.001
+        layers.extra.cut.scale.setScalar(0.001)
+      }
+      this.objs[k] = { outer, spinner, layers, mats: [...mats], extra: layers.extra, s: { e: 0.3, extra: 0, tilt: TILT, scale: 1, heat: 0, cut: 0, pack: 0 } }
     }
     gsap.ticker.add((time) => this.render(time))
   }
 
   render(time) {
-    if (!this.cur && !this.leaving) return
+    const any = Object.values(this.objs).some((o) => o.outer.visible)
+    if (!any) {
+      if (this.dirty) {
+        this.renderer.clear()
+        this.dirty = false
+      }
+      return
+    }
+    this.dirty = true
     this.t = time
     for (const o of Object.values(this.objs)) {
       if (!o.outer.visible) continue
+      for (const m of o.mats) {
+        m.emissive.setRGB(1, 0.32, 0.06)
+        m.emissiveIntensity = o.s.heat * 0.2
+      }
+      if (o.extra) {
+        o.extra.cut.scale.setScalar(Math.max(0.001, o.s.cut))
+        o.extra.pack.scale.z = Math.max(0.001, o.s.pack)
+        o.extra.pack.visible = o.s.pack > 0.01
+      }
       o.outer.rotation.x = o.s.tilt
       o.outer.scale.setScalar(Math.max(0.001, o.s.scale))
       o.spinner.rotation.y = time * 0.32 + o.s.extra
@@ -423,15 +460,15 @@ class Hero {
       o.outer.visible = true
       o.outer.position.set(px, py, 0)
       if (animate) {
-        Object.assign(o.s, { scale: sc * 0.4, extra: -3.2, e: 1.5, tilt: 0.55 })
+        Object.assign(o.s, { scale: sc * 0.4, extra: -3.2, e: 1.5, tilt: 0.55, heat: 0, cut: 0, pack: 0 })
         const d = prev ? 0.3 : 0.15
         gsap.to(o.s, { scale: sc, extra: 0, e, tilt: TILT, duration: 1.6, delay: d, ease: 'power3.out' })
-      } else Object.assign(o.s, { scale: sc, extra: 0, e, tilt: TILT })
+      } else Object.assign(o.s, { scale: sc, extra: 0, e, tilt: TILT, heat: 0, cut: 0, pack: 0 })
     } else {
       o.outer.visible = true
       const dur = animate ? 1.15 : 0
       gsap.to(o.outer.position, { x: px, y: py, duration: dur, ease: 'power3.inOut' })
-      gsap.to(o.s, { scale: sc, e, tilt: TILT, duration: dur, ease: 'power3.inOut' })
+      gsap.to(o.s, { scale: sc, e, tilt: TILT, heat: 0, cut: 0, pack: 0, duration: dur, ease: 'power3.inOut' })
     }
     this.cur = kind
     this.cfg = cfg
@@ -442,6 +479,24 @@ class Hero {
   spin(turns, dur = 1.5) {
     if (!this.cur) return
     gsap.to(this.objs[this.cur].s, { extra: turns * Math.PI * 2, duration: dur, ease: 'power3.inOut', overwrite: 'auto' })
+  }
+
+  // paso a paso del procedimiento (brownie): 0 reposo, 1 preparar, 2 mezclar, 3 hornear, 4 enfriar y porcionar, 5 empacar
+  phase(k, animate = true) {
+    if (!this.cur) return
+    const o = this.objs[this.cur]
+    const P = [
+      { e: 0.3, tilt: TILT, heat: 0, cut: 0, pack: 0 },
+      { e: 0.62, tilt: TILT, heat: 0, cut: 0, pack: 0 },
+      { e: 0, tilt: TILT, heat: 0, cut: 0, pack: 0 },
+      { e: 0, tilt: TILT, heat: 1, cut: 0, pack: 0 },
+      { e: 0.5, tilt: 1.22, heat: 0, cut: 1, pack: 0 },
+      { e: 0, tilt: 1.12, heat: 0, cut: 1, pack: 1 },
+    ][Math.max(0, Math.min(5, k))]
+    const dur = animate ? 1.3 : 0
+    gsap.to(o.s, { ...P, duration: dur, ease: 'power3.inOut', overwrite: 'auto' })
+    if (k === 2) gsap.to(o.s, { extra: o.s.extra + Math.PI * 4, duration: animate ? 1.6 : 0, ease: 'power2.inOut' })
+    
   }
 
   setChips(cfg, animate) {

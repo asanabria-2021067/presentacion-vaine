@@ -125,15 +125,15 @@ export default [
     section: 2,
     title: 'Procedimiento: brownie de avena y cacao',
     bg: '#fbf1da',
-    dessert: { kind: 'brownie', x: 560, y: 60, s: 1.2 },
+    dessert: { kind: 'brownie', x: 540, y: 70, s: 1.0 },
     steps: 5,
-    onStep(k) {
-      d3.spin(k)
+    onStep(k, el, animate) {
+      d3.phase(k, animate)
     },
     notes:
-      'Procedimiento de 10 pasos agrupados en 5 etapas: preparar (ficha técnica, higiene, pesar), mezclar, hornear, enfriar y porcionar, empacar y registrar. El brownie gira con cada etapa.',
+      'Procedimiento de 10 pasos agrupados en 5 etapas: preparar (ficha técnica, higiene, pesar), mezclar, hornear, enfriar y porcionar, empacar y registrar. El brownie se arma por etapas: se abre en capas (ingredientes), se mezcla, se hornea, se corta en porciones y se empaca.',
     html: `
-      ${disc(560, 60, 720, '#e8d0a4')}
+      ${disc(540, 70, 620, '#e8d0a4')}
       ${fn(F)}
       <h2 class="title sm" data-in="words" style="position:relative;z-index:2;font-size:64px">Así se hace el brownie de avena y cacao</h2>
       <div class="proc" style="position:relative;z-index:2">
