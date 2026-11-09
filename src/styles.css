@@ -302,25 +302,12 @@ body.show-cursor {
   z-index: 7;
   pointer-events: none;
 }
-.hp {
+#hero3d {
   position: absolute;
-  left: 960px;
-  top: 540px;
-  width: 560px;
-  height: 560px;
-  border-radius: 50%;
-  border: 14px solid var(--vanilla);
-  box-shadow: 0 30px 70px rgba(58, 24, 7, 0.34), 0 0 0 2px rgba(117, 52, 15, 0.18);
-  overflow: hidden;
-  opacity: 0;
-  background: var(--tan-2);
-  will-change: transform, opacity;
-}
-.hp img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
+  left: 0;
+  top: 0;
+  width: 1920px;
+  height: 1080px;
 }
 .chip {
   position: absolute;

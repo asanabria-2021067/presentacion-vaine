@@ -11,7 +11,8 @@
   "dependencies": {
     "@fontsource/cormorant-garamond": "^5.1.1",
     "@fontsource/montserrat": "^5.1.1",
-    "gsap": "^3.12.5"
+    "gsap": "^3.12.5",
+    "three": "^0.170.0"
   },
   "devDependencies": {
     "vite": "^5.4.10"

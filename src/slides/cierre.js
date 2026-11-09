@@ -53,7 +53,7 @@ export default [
       <div class="bye">
         <div class="thanks" data-in="words">Gracias</div>
         <p class="lead" data-in="up" style="margin-top:22px;color:#3a1807;font-weight:600;font-size:46px">¿Preguntas?</p>
-        <p class="small" data-in="fade" style="margin-top:40px;color:#5a3a22;font-size:24px">Trabajo de elaboración propia, sin fuentes bibliográficas externas. Fotos: Unsplash, licencia libre.</p>
+        <p class="small" data-in="fade" style="margin-top:40px;color:#5a3a22;font-size:24px">Trabajo de elaboración propia, sin fuentes bibliográficas externas.</p>
       </div>`,
   },
 ]
