@@ -318,6 +318,28 @@ function toggleVideo() {
   vids.forEach((v) => (v.paused ? v.play() : v.pause()))
 }
 
+// ---------- Música lofi (muy baja, en bucle) ----------
+
+const music = PREVIEW ? null : new Audio('audio/lofi.mp3')
+let musicOn = true
+if (music) {
+  music.loop = true
+  music.volume = 0
+  const start = () => {
+    if (!musicOn) return
+    music.play().then(() => gsap.to(music, { volume: 0.09, duration: 4 })).catch(() => {})
+  }
+  // el navegador solo deja sonar tras una interacción: la primera tecla o clic la arranca
+  addEventListener('pointerdown', start, { once: true })
+  addEventListener('keydown', start, { once: true })
+}
+function toggleMusic() {
+  if (!music) return
+  musicOn = !musicOn
+  if (musicOn) music.play().then(() => gsap.to(music, { volume: 0.09, duration: 1.5 })).catch(() => {})
+  else gsap.to(music, { volume: 0, duration: 0.8, onComplete: () => music.pause() })
+}
+
 // ---------- Teclado (incluye clickers: PageUp/PageDown/B/.) ----------
 
 let gotoBuf = ''
@@ -356,6 +378,7 @@ addEventListener('keydown', (e) => {
   else if (k === 'v' || k === 'V' || k === 'k' || k === 'K') toggleVideo()
   else if (k === 'p' || k === 'P') window.open('presenter.html', 'vaine-presenter', 'width=1400,height=860')
   else if (k === 'r' || k === 'R') replay()
+  else if (k === 'm' || k === 'M') toggleMusic()
 })
 
 function replay() {

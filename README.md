@@ -35,3 +35,7 @@ La URL guarda la posición (`#4.2` = slide 4, paso 2).
 - Marca (`#brand` en `index.html`): logo grande arriba a la derecha, con la flor girando en cada cambio de slide. Cada slide puede pedir `brand: 'cover'` (portada) o `brand: 'center'` (cierre); en slides oscuras (`layout: 'dark'`) usa la versión clara.
 - `public/media/postres/`: fotos de Unsplash (Unsplash License, uso libre sin atribución obligatoria). Brownie: Ebru Doğan. Cheesecake: Tharun Thejas J P. Muffin: Kaitlyn Chow. Pancakes: Jaqueline Pelzer.
 - `public/media/`: logo de Vainé, flor de vainilla y wordmark con fondo transparente.
+
+## Música
+
+Hay un lofi propio, generado por código y sin derechos de autor, en `public/audio/lofi.mp3`. Suena muy bajito en bucle desde la primera tecla o clic; la tecla M la silencia o la reactiva.
