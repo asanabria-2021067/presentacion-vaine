@@ -1,0 +1,1186 @@
+/* Vainé · presentación final. Lienzo fijo de 1920×1080 escalado a la pantalla. */
+
+:root {
+  --vanilla: #fbf1da;
+  --vanilla-2: #f3e3bf;
+  --tan: #d7b782;
+  --tan-2: #e8d0a4;
+  --tan-3: #b88a4b;
+  --cocoa: #75340f;
+  --deep: #3a1807;
+  --ink: #2b1407;
+  --soft: #5a3a22;
+  --berry: #a5314a;
+  --oat: #c99a55;
+  --line: rgba(117, 52, 15, 0.28);
+
+  --f-display: 'Cormorant Garamond', Georgia, serif;
+  --f-sans: 'Montserrat', system-ui, sans-serif;
+  --pad-x: 140px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #1f0e05;
+  color: var(--ink);
+  font-family: var(--f-sans);
+  -webkit-font-smoothing: antialiased;
+  font-variant-numeric: lining-nums;
+  font-feature-settings: 'lnum' 1;
+  cursor: none;
+}
+body.show-cursor {
+  cursor: default;
+}
+
+#viewport {
+  position: fixed;
+  inset: 0;
+  background: #1f0e05;
+}
+
+#stage {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden;
+  transform-origin: center center;
+}
+
+#bg {
+  position: absolute;
+  inset: 0;
+  background: var(--vanilla);
+  z-index: 0;
+}
+
+#dessert-canvas {
+  position: absolute;
+  inset: 0;
+  width: 1920px;
+  height: 1080px;
+  z-index: 7;
+  pointer-events: none;
+}
+#dessert-labels {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  pointer-events: none;
+  opacity: 0;
+}
+
+#blackout {
+  position: absolute;
+  inset: 0;
+  z-index: 100;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+#blackout.on {
+  opacity: 1;
+}
+#sweep {
+  position: absolute;
+  inset: 0;
+  z-index: 35;
+  pointer-events: none;
+  background: linear-gradient(100deg, transparent 0%, rgba(251, 241, 218, 0) 40%, rgba(251, 241, 218, 0.35) 50%, rgba(251, 241, 218, 0) 60%, transparent 100%);
+  opacity: 0;
+}
+#goto {
+  position: absolute;
+  right: 48px;
+  top: 40px;
+  z-index: 60;
+  font-size: 28px;
+  color: var(--cocoa);
+  background: var(--vanilla);
+  padding: 10px 20px;
+  border-radius: 12px;
+  display: none;
+}
+#goto.on {
+  display: block;
+}
+
+/* ---------- Slides ---------- */
+
+.slide {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 120px var(--pad-x) 110px;
+  visibility: hidden;
+  opacity: 0;
+  color: var(--ink);
+}
+.slide.active {
+  visibility: visible;
+  opacity: 1;
+  z-index: 6;
+}
+.slide.dark {
+  color: var(--vanilla);
+}
+.slide.center {
+  align-items: center;
+  text-align: center;
+}
+
+/* Marca de la función administrativa (arriba) y flor (abajo) */
+.fn {
+  position: absolute;
+  left: var(--pad-x);
+  top: 62px;
+  font-family: var(--f-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 40px;
+  color: var(--cocoa);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.fn::before {
+  content: '';
+  width: 54px;
+  height: 2px;
+  background: currentColor;
+}
+.dark .fn {
+  color: var(--tan);
+}
+.foot {
+  position: absolute;
+  right: 70px;
+  bottom: 52px;
+  width: 78px;
+  height: 78px;
+  object-fit: contain;
+  padding: 13px;
+  border-radius: 50%;
+  background: var(--cocoa);
+}
+
+/* ---------- Tipografía ---------- */
+
+.title {
+  font-family: var(--f-display);
+  font-weight: 600;
+  font-size: 118px;
+  line-height: 0.98;
+  letter-spacing: -0.01em;
+  color: var(--deep);
+  max-width: 1300px;
+}
+.title.md {
+  font-size: 92px;
+}
+.title.sm {
+  font-size: 72px;
+  line-height: 1.04;
+}
+.dark .title {
+  color: var(--vanilla);
+}
+.lead {
+  font-size: 34px;
+  line-height: 1.5;
+  font-weight: 500;
+  color: var(--soft);
+  margin-top: 34px;
+  max-width: 1000px;
+}
+.dark .lead {
+  color: var(--tan-2);
+}
+.small {
+  font-size: 26px;
+  line-height: 1.5;
+  color: var(--soft);
+}
+.dark .small {
+  color: var(--tan-2);
+}
+.cocoa {
+  color: var(--cocoa);
+}
+.dark .cocoa {
+  color: var(--tan);
+}
+
+.w {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  padding-bottom: 0.1em;
+  margin-bottom: -0.1em;
+}
+.wi {
+  display: inline-block;
+}
+
+[data-count] {
+  white-space: nowrap;
+}
+.dg {
+  display: inline-block;
+  width: 0.5em;
+  text-align: center;
+  font-style: inherit;
+}
+
+/* Disco de color detrás del postre */
+.disc {
+  position: absolute;
+  border-radius: 50%;
+  z-index: 0;
+}
+
+.icon {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--cocoa);
+  color: var(--vanilla);
+}
+.icon svg {
+  width: 46px;
+  height: 46px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ---------- Rótulos de capas 3D ---------- */
+
+.dlabel {
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-family: var(--f-display);
+  font-weight: 600;
+  font-size: 40px;
+  color: var(--deep);
+  white-space: nowrap;
+  will-change: transform;
+}
+.dlabel i {
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  margin-right: 14px;
+  height: 2px;
+  width: var(--len, 60px);
+  background: var(--cocoa);
+}
+.dlabel i::before {
+  content: '';
+  position: absolute;
+  left: -4px;
+  top: -4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--cocoa);
+  box-shadow: 0 0 0 3px var(--vanilla);
+}
+.dlabel.left i {
+  right: auto;
+  left: 100%;
+  margin-right: 0;
+  margin-left: 14px;
+}
+.dlabel.left i::before {
+  left: auto;
+  right: -4px;
+}
+
+/* ---------- Portada ---------- */
+
+.logo-big {
+  width: 900px;
+  display: block;
+}
+
+/* ---------- Equipo ---------- */
+
+.team {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+  margin-top: 40px;
+  width: 820px;
+}
+.team div {
+  font-family: var(--f-display);
+  font-weight: 600;
+  font-size: 62px;
+  line-height: 1.2;
+  color: var(--deep);
+  border-bottom: 2px solid var(--line);
+  padding: 6px 0 10px;
+}
+
+/* ---------- Datos de la empresa ---------- */
+
+.facts {
+  margin-top: 56px;
+  width: 1000px;
+}
+.fact {
+  display: grid;
+  grid-template-columns: 330px 1fr;
+  align-items: baseline;
+  gap: 24px;
+  padding: 24px 0;
+  border-top: 2px solid var(--line);
+}
+.fact:last-child {
+  border-bottom: 2px solid var(--line);
+}
+.fact span {
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--cocoa);
+}
+.fact b {
+  font-family: var(--f-display);
+  font-weight: 600;
+  font-size: 50px;
+  line-height: 1.1;
+  color: var(--deep);
+}
+
+/* ---------- Productos 3D ---------- */
+
+.dname {
+  font-family: var(--f-display);
+  font-weight: 600;
+  font-size: 104px;
+  line-height: 1;
+  color: var(--deep);
+  min-height: 108px;
+}
+.pts {
+  margin-top: 46px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  max-width: 640px;
+}
+.pts p {
+  font-size: 30px;
+  line-height: 1.4;
+  font-weight: 500;
+  color: var(--soft);
+  padding-left: 40px;
+  position: relative;
+}
+.pts p::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.5em;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--tan-3);
+}
+
+/* ---------- Columnas de factores ---------- */
+
+.cols4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  margin-top: 70px;
+}
+.col {
+  padding: 0 40px;
+  border-left: 2px solid var(--line);
+}
+.col:first-child {
+  padding-left: 0;
+  border-left: 0;
+}
+.col h3 {
+  font-family: var(--f-display);
+  font-size: 56px;
+  font-weight: 600;
+  margin: 34px 0 16px;
+  color: var(--deep);
+}
+.col p {
+  font-size: 28px;
+  line-height: 1.5;
+  color: var(--soft);
+  font-weight: 500;
+}
+
+/* ---------- Misión y visión ---------- */
+
+.statement {
+  max-width: 1120px;
+}
+.statement h3 {
+  font-family: var(--f-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 56px;
+  color: var(--tan);
+}
+.statement p {
+  font-family: var(--f-display);
+  font-weight: 500;
+  font-size: 50px;
+  line-height: 1.22;
+  color: var(--vanilla);
+  margin-top: 10px;
+}
+.statement + .statement {
+  margin-top: 64px;
+}
+
+/* ---------- Metas y objetivos ---------- */
+
+.nums {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 60px;
+  margin-top: 40px;
+}
+.nums + .nums {
+  margin-top: 50px;
+}
+.num {
+  border-top: 3px solid var(--cocoa);
+  padding-top: 18px;
+}
+.num b {
+  display: block;
+  font-family: var(--f-display);
+  font-weight: 600;
+  font-size: 124px;
+  line-height: 0.95;
+  color: var(--cocoa);
+}
+.num > span {
+  display: block;
+  margin-top: 14px;
+  font-size: 27px;
+  line-height: 1.4;
+  font-weight: 500;
+  color: var(--soft);
+  max-width: 460px;
+}
+.rowhead {
+  font-family: var(--f-display);
+  font-style: italic;
+  font-size: 48px;
+  font-weight: 500;
+  color: var(--cocoa);
+}
+
+/* ---------- Reglas, políticas, estrategias ---------- */
+
+.trio {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr 1fr;
+  gap: 70px;
+  margin-top: 56px;
+}
+.trio h3 {
+  font-family: var(--f-display);
+  font-size: 66px;
+  font-weight: 600;
+  color: var(--cocoa);
+  margin-bottom: 18px;
+}
+.trio p {
+  font-size: 29px;
+  line-height: 1.45;
+  font-weight: 500;
+  color: var(--soft);
+  padding: 16px 0;
+  border-top: 2px solid var(--line);
+}
+.chips {
+  display: flex;
+  gap: 14px;
+  margin: 8px 0 14px;
+}
+.chip {
+  font-weight: 600;
+  font-size: 28px;
+  padding: 10px 26px;
+  border-radius: 999px;
+  background: var(--cocoa);
+  color: var(--vanilla);
+}
+
+/* ---------- Procedimiento ---------- */
+
+.proc {
+  margin-top: 40px;
+  width: 900px;
+}
+.stage-row {
+  display: grid;
+  grid-template-columns: 76px 1fr;
+  gap: 28px;
+  align-items: start;
+  padding: 13px 0;
+  border-top: 2px solid var(--line);
+}
+.stage-row i {
+  font-style: normal;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--cocoa);
+  color: var(--vanilla);
+  font-weight: 700;
+  font-size: 28px;
+}
+.stage-row b {
+  display: block;
+  font-family: var(--f-display);
+  font-weight: 600;
+  font-size: 42px;
+  line-height: 1;
+  color: var(--deep);
+}
+.stage-row span {
+  display: block;
+  margin-top: 4px;
+  font-size: 23px;
+  line-height: 1.4;
+  color: var(--soft);
+  font-weight: 500;
+}
+
+/* ---------- Gráficas del presupuesto ---------- */
+
+.chart {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  column-gap: 34px;
+  height: 560px;
+  width: 1010px;
+}
+.chart::after {
+  content: '';
+  position: absolute;
+  left: -10px;
+  right: -10px;
+  bottom: 0;
+  height: 3px;
+  background: var(--deep);
+}
+.cbar {
+  position: relative;
+  height: 100%;
+}
+.cbar .bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-radius: 10px 10px 0 0;
+  transform-origin: 50% 100%;
+}
+.cbar .val {
+  position: absolute;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: 52px;
+  line-height: 1;
+  color: var(--deep);
+}
+.clabels {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  column-gap: 34px;
+  width: 1010px;
+  margin-top: 20px;
+}
+.clabels span {
+  text-align: center;
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--soft);
+  line-height: 1.3;
+}
+
+.seg {
+  display: flex;
+  gap: 4px;
+  height: 120px;
+  width: 1100px;
+  margin-top: 26px;
+}
+.seg i {
+  display: block;
+  border-radius: 6px;
+  transform-origin: 0 50%;
+  position: relative;
+}
+.seglabels {
+  display: flex;
+  gap: 4px;
+  width: 1100px;
+  margin-top: 14px;
+}
+.seglabels span {
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--soft);
+}
+.seglabels b {
+  display: block;
+  font-family: var(--f-display);
+  font-size: 44px;
+  color: var(--deep);
+}
+
+.hbars {
+  margin-top: 22px;
+  width: 1100px;
+}
+.hb {
+  display: grid;
+  grid-template-columns: 360px 1fr 120px;
+  align-items: center;
+  gap: 18px;
+  height: 52px;
+}
+.hb span {
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--soft);
+  text-align: right;
+}
+.hb em {
+  font-style: normal;
+  display: block;
+  height: 20px;
+  border-radius: 0 10px 10px 0;
+  background: var(--cocoa);
+  transform-origin: 0 50%;
+}
+.hb em.light {
+  background: var(--tan-3);
+}
+.hb b {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--deep);
+}
+
+/* ---------- Organigrama ---------- */
+
+.org {
+  position: relative;
+  width: 1664px;
+  height: 620px;
+  margin: 30px 0 0 -10px;
+}
+.org svg {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+}
+.org path {
+  fill: none;
+  stroke: var(--cocoa);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.node {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 0 14px;
+  border-radius: 18px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.node.l1 {
+  width: 360px;
+  height: 100px;
+  font-size: 30px;
+  background: var(--cocoa);
+  color: var(--vanilla);
+}
+.node.l2 {
+  width: 300px;
+  height: 108px;
+  font-size: 25px;
+  background: var(--tan);
+  color: var(--deep);
+}
+.node.l3 {
+  width: 250px;
+  height: 100px;
+  font-size: 23px;
+  border: 3px solid var(--cocoa);
+  color: var(--deep);
+}
+
+/* ---------- Dos columnas de listas ---------- */
+
+.twocol {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 90px;
+  margin-top: 50px;
+  width: 1500px;
+}
+.twocol h3 {
+  font-family: var(--f-display);
+  font-size: 62px;
+  font-weight: 600;
+  color: var(--cocoa);
+  margin-bottom: 14px;
+}
+.twocol p {
+  font-size: 28px;
+  line-height: 1.4;
+  font-weight: 500;
+  color: var(--soft);
+  padding: 15px 0;
+  border-top: 2px solid var(--line);
+}
+.twocol p b {
+  color: var(--deep);
+  font-weight: 700;
+}
+
+/* ---------- Línea de tiempo de contratación ---------- */
+
+.gantt {
+  position: relative;
+  width: 1500px;
+  margin-top: 50px;
+}
+.axis {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  border-bottom: 3px solid var(--deep);
+  padding-bottom: 12px;
+  margin-left: 0;
+}
+.axis span {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--soft);
+}
+.grow {
+  position: relative;
+  height: 150px;
+}
+.gbar {
+  position: absolute;
+  top: 36px;
+  height: 66px;
+  border-radius: 33px;
+  background: var(--cocoa);
+  transform-origin: 0 50%;
+}
+.gbar.open {
+  border-radius: 33px 0 0 33px;
+  background: linear-gradient(90deg, var(--cocoa), var(--tan-3));
+}
+.gtext {
+  position: absolute;
+  top: 0;
+  font-family: var(--f-display);
+  font-size: 46px;
+  font-weight: 600;
+  color: var(--deep);
+  white-space: nowrap;
+}
+.gtext small {
+  font-family: var(--f-sans);
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--cocoa);
+  margin-left: 14px;
+}
+
+/* ---------- Proceso de integración ---------- */
+
+.flow {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0;
+  margin-top: 60px;
+  width: 1640px;
+}
+.flow::before {
+  content: '';
+  position: absolute;
+  left: 60px;
+  right: 120px;
+  top: 55px;
+  height: 3px;
+  background: var(--line);
+}
+.stp {
+  position: relative;
+  padding-right: 34px;
+}
+.stp i {
+  font-style: normal;
+  width: 112px;
+  height: 112px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--cocoa);
+  color: var(--vanilla);
+  font-family: var(--f-display);
+  font-weight: 600;
+  font-size: 62px;
+  position: relative;
+  z-index: 2;
+}
+.stp h3 {
+  font-family: var(--f-display);
+  font-size: 54px;
+  font-weight: 600;
+  margin: 28px 0 12px;
+  color: var(--deep);
+}
+.stp p {
+  font-size: 25px;
+  line-height: 1.45;
+  font-weight: 500;
+  color: var(--soft);
+}
+
+/* ---------- Dirección ---------- */
+
+.decide {
+  position: relative;
+  width: 1700px;
+  height: 520px;
+  margin-top: 20px;
+}
+.decide svg {
+  position: absolute;
+  inset: 0;
+}
+.decide path {
+  fill: none;
+  stroke: var(--cocoa);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+.bub {
+  position: absolute;
+  width: 560px;
+  padding: 24px 30px;
+  border-radius: 28px;
+  background: var(--tan);
+  color: var(--deep);
+}
+.bub b {
+  display: block;
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: 44px;
+  line-height: 1;
+}
+.bub span {
+  display: block;
+  margin-top: 8px;
+  font-size: 24px;
+  line-height: 1.35;
+  font-weight: 500;
+}
+.final {
+  position: absolute;
+  right: 0;
+  top: 120px;
+  width: 520px;
+  height: 280px;
+  border-radius: 40px;
+  background: var(--cocoa);
+  color: var(--vanilla);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 44px;
+}
+.final b {
+  font-family: var(--f-display);
+  font-size: 66px;
+  line-height: 1;
+  font-weight: 600;
+}
+.final span {
+  margin-top: 12px;
+  font-size: 26px;
+  line-height: 1.4;
+  font-weight: 500;
+  color: var(--tan-2);
+}
+
+.levels {
+  display: grid;
+  grid-template-columns: 560px 1fr;
+  column-gap: 90px;
+  align-items: center;
+  margin-top: 30px;
+}
+.pyr {
+  position: relative;
+  width: 520px;
+  height: 560px;
+}
+.pyr div {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 176px;
+}
+.pyr .p1 {
+  top: 0;
+  width: 220px;
+  background: var(--deep);
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+.pyr .p2 {
+  top: 186px;
+  width: 400px;
+  background: var(--cocoa);
+  clip-path: polygon(22% 0, 78% 0, 100% 100%, 0 100%);
+}
+.pyr .p3 {
+  top: 372px;
+  width: 520px;
+  background: var(--tan-3);
+  clip-path: polygon(15% 0, 85% 0, 100% 100%, 0 100%);
+}
+.lvl {
+  padding: 22px 0;
+  border-top: 2px solid var(--line);
+}
+.lvl h3 {
+  font-family: var(--f-display);
+  font-size: 54px;
+  font-weight: 600;
+  color: var(--cocoa);
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.lvl h3::before {
+  content: '';
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--dot);
+}
+.lvl p {
+  font-size: 27px;
+  line-height: 1.45;
+  font-weight: 500;
+  color: var(--soft);
+  margin-top: 6px;
+}
+.lvl p b {
+  color: var(--deep);
+}
+
+.media {
+  margin-top: 40px;
+  width: 1640px;
+}
+.mrow {
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  gap: 40px;
+  align-items: center;
+  padding: 16px 0;
+  border-top: 2px solid var(--line);
+}
+.mrow:last-child {
+  border-bottom: 2px solid var(--line);
+}
+.mrow b {
+  font-family: var(--f-display);
+  font-size: 46px;
+  font-weight: 600;
+  color: var(--deep);
+}
+.mrow div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.mrow span {
+  font-size: 24px;
+  font-weight: 600;
+  padding: 8px 20px;
+  border-radius: 999px;
+  background: var(--tan);
+  color: var(--deep);
+}
+
+/* ---------- Control ---------- */
+
+.track {
+  position: absolute;
+  left: 140px;
+  right: 140px;
+  top: 640px;
+  height: 3px;
+  background: var(--line);
+}
+.ctrl {
+  position: absolute;
+  top: 610px;
+  width: 520px;
+}
+.ctrl .dot {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--cocoa);
+  color: var(--vanilla);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 28px;
+  margin-left: 0;
+  position: relative;
+  top: -16px;
+}
+.ctrl h3 {
+  font-family: var(--f-display);
+  font-size: 58px;
+  font-weight: 600;
+  line-height: 1;
+  margin-top: 6px;
+  color: var(--deep);
+}
+.ctrl .when {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--cocoa);
+  margin-top: 8px;
+}
+.ctrl p {
+  font-size: 25px;
+  line-height: 1.45;
+  font-weight: 500;
+  color: var(--soft);
+  margin-top: 12px;
+}
+
+.rhythm {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 70px;
+  margin-top: 40px;
+}
+.rhythm svg {
+  width: 100%;
+  height: 130px;
+  overflow: visible;
+}
+.rhythm path,
+.rhythm line {
+  fill: none;
+  stroke: var(--cocoa);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.rhythm h3 {
+  font-family: var(--f-display);
+  font-size: 66px;
+  font-weight: 600;
+  color: var(--deep);
+  margin-top: 10px;
+}
+.rhythm p {
+  font-size: 25px;
+  line-height: 1.42;
+  font-weight: 500;
+  color: var(--soft);
+  padding: 12px 0;
+  border-top: 2px solid var(--line);
+}
+
+/* ---------- Conclusiones y recomendaciones ---------- */
+
+.recap {
+  margin-top: 44px;
+  width: 1640px;
+}
+.rc {
+  display: grid;
+  grid-template-columns: 470px 1fr;
+  gap: 40px;
+  align-items: baseline;
+  padding: 24px 0;
+  border-top: 2px solid var(--line);
+}
+.rc:last-child {
+  border-bottom: 2px solid var(--line);
+}
+.rc b {
+  font-family: var(--f-display);
+  font-size: 52px;
+  font-weight: 600;
+  color: var(--cocoa);
+  line-height: 1.05;
+}
+.rc span {
+  font-size: 28px;
+  line-height: 1.45;
+  font-weight: 500;
+  color: var(--soft);
+}
+
+.thanks {
+  font-family: var(--f-display);
+  font-weight: 600;
+  font-size: 150px;
+  line-height: 1;
+  color: var(--deep);
+}
