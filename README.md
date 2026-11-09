@@ -33,5 +33,5 @@ La URL guarda la posición (`#4.2` = slide 4, paso 2).
 - `src/sections.js`: quién expone cada bloque y su tiempo tope. **Ajustar al reparto real.**
 - `src/hero.js`: la foto circular del postre. Es un solo círculo persistente encima de las slides; cada slide le dice dónde ponerlo (`dessert: { kind, x, y, s, labels }`) y al cambiar de postre gira y se intercambia. Postres: `brownie`, `cheesecake`, `muffin`, `pancakes`. `labels` muestra los chips de ingredientes (editarlos en `KINDS`).
 - Marca (`#brand` en `index.html`): logo grande arriba a la derecha, con la flor girando en cada cambio de slide. Cada slide puede pedir `brand: 'cover'` (portada) o `brand: 'center'` (cierre); en slides oscuras (`layout: 'dark'`) usa la versión clara.
-- `public/media/postres/`: fotos de Unsplash (Unsplash License, uso libre sin atribución obligatoria). Brownie: Ebru Doğan. Cheesecake: Tharun Thejas J P. Muffin: Kaitlyn Chow. Pancakes: foto de la búsqueda "pancake" de Unsplash (autor por confirmar en la página de la foto).
+- `public/media/postres/`: fotos de Unsplash (Unsplash License, uso libre sin atribución obligatoria). Brownie: Ebru Doğan. Cheesecake: Tharun Thejas J P. Muffin: Kaitlyn Chow. Pancakes: Jaqueline Pelzer.
 - `public/media/`: logo de Vainé, flor de vainilla y wordmark con fondo transparente.
