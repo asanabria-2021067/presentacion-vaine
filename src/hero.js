@@ -169,6 +169,8 @@ class Hero {
     }
 
     if (!cfg) {
+      this.token = (this.token || 0) + 1
+      if (!animate) for (const other of Object.values(this.objs)) other.el.style.visibility = 'hidden'
       this.cur = null
       this.cfg = null
       this.setChips(null, false)
@@ -181,7 +183,12 @@ class Hero {
     const py = 540 + (cfg.y || 0)
     const wantSplit = !!cfg.labels
     gsap.killTweensOf(o.el)
+    const token = (this.token = (this.token || 0) + 1)
     o.ready.then(() => {
+      // si mientras cargaba ya se pidió otro postre, este no se muestra
+      if (token !== this.token) return
+      // cualquier otro postre que siga visible (saltos rápidos) se esconde
+      for (const other of Object.values(this.objs)) if (other !== o && !(animate && other.kind === prev)) other.el.style.visibility = 'hidden'
       if (prev !== kind) {
         this.reset(o)
         o.el.style.visibility = 'visible'
