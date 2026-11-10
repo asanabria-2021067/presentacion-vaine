@@ -1,4 +1,5 @@
 import { d3 } from '../hero.js'
+import { Proceso } from '../proceso.js'
 import { icon } from '../fx.js'
 import { foot, fn, disc, money } from './util.js'
 
@@ -125,15 +126,25 @@ export default [
     section: 2,
     title: 'Procedimiento: brownie de avena y cacao',
     bg: '#fbf1da',
-    dessert: { kind: 'brownie', x: 540, y: 70, s: 1.0 },
+    dessert: null,
     steps: 5,
+    enter(el, tl) {
+      const host = el.querySelector('.pscene')
+      el._proc = el._proc || new Proceso(host)
+      el._proc.state(0)
+      el._proc.k = -1
+      tl.add(el._proc.play(0), 0.1)
+    },
     onStep(k, el, animate) {
-      d3.phase(k, animate)
+      const p = el._proc
+      if (!p) return
+      if (animate) p.play(k)
+      else p.state(k)
     },
     notes:
-      'Procedimiento de 10 pasos agrupados en 5 etapas: preparar (ficha técnica, higiene, pesar), mezclar, hornear, enfriar y porcionar, empacar y registrar. El brownie se arma por etapas: se abre en capas (ingredientes), se mezcla, se hornea, se corta en porciones y se empaca.',
+      'Procedimiento de 10 pasos agrupados en 5 etapas: preparar (ficha técnica, higiene, pesar), mezclar, hornear, enfriar y porcionar, empacar y registrar. Escena automática por paso: el brownie se separa en sus ingredientes, todo cae al bowl y se bate, la masa se vierte al molde y se hornea, se corta en porciones y una porción entra a la caja.',
     html: `
-      ${disc(540, 70, 620, '#e8d0a4')}
+      <div class="pscene"></div>
       ${fn(F)}
       <h2 class="title sm" data-in="words" style="position:relative;z-index:2;font-size:64px">Así se hace el brownie de avena y cacao</h2>
       <div class="proc" style="position:relative;z-index:2">

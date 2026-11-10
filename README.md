@@ -31,7 +31,10 @@ La URL guarda la posición (`#4.2` = slide 4, paso 2).
 
 - `src/slides/*.js`: el contenido de cada slide, sus pasos (`data-step`) y sus notas para quien expone.
 - `src/sections.js`: quién expone cada bloque y su tiempo tope. **Ajustar al reparto real.**
-- `src/hero.js`: el postre por capas en 2D. Cada postre son imágenes de Canva en vista frontal (una por capa, en `public/media/capas/`) que flotan y se mecen; al abrirse (`labels`) se separan en vertical, los ingredientes giran alrededor y cada capa se nombra con un chip. Cada slide dice dónde ponerlo (`dessert: { kind, x, y, s, labels, explode }`). `phase(k)` anima el paso a paso del brownie (preparar, mezclar, hornear, porcionar, empacar). Para cambiar una capa, reemplaza su PNG (fondo transparente) y ajusta `w` en `KINDS`.
+- `src/hero.js`: el postre completo (imágenes de Canva, vista frontal, en `public/media/capas/`). Flota en la slide; al cambiar de slide se va hacia arriba y el siguiente entra desde abajo, como un scroll automático. Con `labels` (slide de productos) se separa en sus capas y cada capa nombra su ingrediente.
+- `src/proceso.js`: la escena de la preparación del brownie. Cada clic reproduce su tramo: el brownie se separa en ingredientes, todo cae al bowl y se bate, la masa se vierte al molde y se hornea, se corta y una porción entra a la caja. Atrás va una palabra gigante por paso.
+- Las imágenes se generaron en Canva y se agrandaron 4 veces con superresolución (EDSR). Para cambiar una, reemplaza su PNG con fondo transparente y el mismo nombre.
+- La marca: arriba a la derecha solo se ve la flor, grande y cortada por el borde, y gira un pétalo en cada cambio de slide. El logo completo sale en la portada y en el cierre.
 - Marca (`#brand` en `index.html`): logo grande arriba a la derecha, con la flor girando en cada cambio de slide. Cada slide puede pedir `brand: 'cover'` (portada) o `brand: 'center'` (cierre); en slides oscuras (`layout: 'dark'`) usa la versión clara.
 - `public/media/`: logo de Vainé, flor de vainilla y wordmark con fondo transparente.
 

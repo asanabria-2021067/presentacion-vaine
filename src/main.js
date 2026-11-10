@@ -70,8 +70,9 @@ function brandPose(state) {
   const oy = (H - 1080) / 2
   if (state === 'cover') return { x: ox + 120, y: oy + 270, scale: 1.08 }
   if (state === 'center') return { x: (W - 816 * 1.45) / 2, y: oy + 90, scale: 1.45 }
-  // esquina: solo la flor (la palabra se oculta), a la derecha
-  return { x: W - 64 - 596 * 0.95 - 220 * 0.95, y: 26, scale: 0.95 }
+  // esquina: solo la flor, grande y cortada por el borde (se ven el centro y un pétalo)
+  const k = 2.6
+  return { x: W - 70 - 706 * k, y: 64 - 122 * k, scale: k }
 }
 
 function setBrand(state, light, animate) {
@@ -261,7 +262,7 @@ function go(i, s = 0, { animate = true, broadcast = true } = {}) {
   else gsap.set([bgEl, vp], { backgroundColor: bg })
   d3.show(slide.dessert, { animate: animate })
   setBrand(slide.brand || 'corner', slide.layout === 'dark', animate)
-  if (animate) gsap.to(flor, { rotation: '+=300', duration: 1.7, ease: 'power3.inOut', overwrite: 'auto' })
+  if (animate) gsap.to(flor, { rotation: '+=72', duration: 1.4, ease: 'power3.inOut', overwrite: 'auto' })
 
   const fullAnim = animate && forward
   if (animate) gsap.fromTo(el, { opacity: 0 }, { opacity: 1, duration: 0.5, delay: prev ? 0.25 : 0 })

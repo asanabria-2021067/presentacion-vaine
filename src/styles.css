@@ -311,6 +311,19 @@ body.show-cursor {
   isolation: isolate;
   will-change: transform;
 }
+.dwhole {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: block;
+  max-width: none;
+  filter: drop-shadow(0 14px 18px rgba(58, 24, 7, 0.26));
+  animation: dfloat 5.5s ease-in-out infinite;
+}
+@keyframes dfloat {
+  0%, 100% { translate: 0 0; rotate: -1deg; }
+  50% { translate: 0 -12px; rotate: 1deg; }
+}
 .dlayer {
   position: absolute;
   left: 0;
@@ -1336,4 +1349,64 @@ body.show-cursor {
   font-size: 150px;
   line-height: 1;
   color: var(--deep);
+}
+
+/* ---------- Escena de la preparación (scroll automático) ---------- */
+.pscene {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+.pword {
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-style: italic;
+  font-size: 200px;
+  line-height: 1;
+  color: #ecd6ab;
+  white-space: nowrap;
+  z-index: 0;
+}
+.pscene .pimg {
+  display: block;
+  max-width: none;
+  z-index: 2;
+  filter: drop-shadow(0 14px 18px rgba(58, 24, 7, 0.26));
+}
+.pscene .pfall { z-index: 4; filter: drop-shadow(0 6px 8px rgba(58, 24, 7, 0.3)); }
+.pchip { z-index: 5; }
+.pglow {
+  width: 760px;
+  height: 520px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255, 150, 50, 0.75), rgba(255, 120, 30, 0));
+  z-index: 1;
+}
+.pstream {
+  width: 24px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, #3a1a0a, #6b3518 45%, #3a1a0a);
+  z-index: 3;
+}
+.psteam {
+  width: 120px;
+  height: 160px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0));
+  filter: blur(8px);
+  z-index: 6;
+}
+.pcut {
+  background: #fbf1da;
+  border-radius: 4px;
+  box-shadow: 0 0 0 1px rgba(58, 24, 7, 0.15);
+  z-index: 3;
+}
+.pdust {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #4a230e;
+  z-index: 4;
 }
